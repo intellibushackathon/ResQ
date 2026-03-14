@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  font-family: Manrope, sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(36, 145, 255, 0.18), transparent 32%),
+    radial-gradient(circle at top right, rgba(22, 199, 132, 0.1), transparent 24%),
+    linear-gradient(180deg, #06111f 0%, #09182b 48%, #10233c 100%);
+  color: #f8fafc;
+}
+
+@layer base {
+  * {
+    @apply border-white/10;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply min-h-screen bg-panel-950 text-slate-100 antialiased;
+  }
+
+  body,
+  #root {
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: rgba(36, 145, 255, 0.28);
+    color: #f8fafc;
+  }
+}
+
+@layer components {
+  .panel-outline {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(180deg, rgba(10, 22, 37, 0.92), rgba(8, 18, 30, 0.88));
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(12px);
+  }
+
+  .section-label {
+    @apply text-xs font-semibold uppercase tracking-[0.35em] text-slate-500;
+  }
+
+  .status-chip {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em];
+  }
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(8, 18, 32, 0.75);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(36, 145, 255, 0.7), rgba(9, 24, 43, 0.7));
+  border-radius: 999px;
+}
+

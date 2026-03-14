@@ -1,0 +1,11 @@
+{
+  "name": "ResQ",
+  "short_name": "ResQ",
+  "description": "Disaster intelligence and emergency coordination platform.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#06111f",
+  "theme_color": "#2491ff",
+  "icons": []
+}
+
