@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Badge } from "../ui/Badge";
@@ -7,6 +8,7 @@ import { cn } from "../../lib/utils";
 import { BrandMark } from "./BrandMark";
 import type { NavItem } from "./layout-data";
 import { roleDisplayLabel, useAuthStore } from "../../store/useAuthStore";
+import { useReportStore } from "../../store/useReportStore";
 import type { BadgeVariant } from "../ui/Badge";
 
 type NavigationProps = {
@@ -40,6 +42,20 @@ function NavigationContent({
   onSignOut,
   onSignIn,
 }: NavigationContentProps) {
+  const queueCount = useReportStore((state) => state.offlineQueue.length);
+  const isSyncingOfflineQueue = useReportStore((state) => state.isSyncingOfflineQueue);
+  const [isOnline, setIsOnline] = useState<boolean>(() => navigator.onLine);
+
+  useEffect(() => {
+    const updateStatus = () => setIsOnline(navigator.onLine);
+    window.addEventListener("online", updateStatus);
+    window.addEventListener("offline", updateStatus);
+    return () => {
+      window.removeEventListener("online", updateStatus);
+      window.removeEventListener("offline", updateStatus);
+    };
+  }, []);
+
   return (
     <div className="flex h-full flex-col gap-6">
       <div className="flex justify-center">
@@ -57,11 +73,17 @@ function NavigationContent({
         <CardContent className="space-y-3 text-sm text-slate-200">
           <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
             <span>Connectivity</span>
-            <Badge variant="success">Online-ready</Badge>
+            <Badge variant={isOnline ? "success" : "warning"}>{isOnline ? "Online" : "Offline"}</Badge>
           </div>
           <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
             <span>Report pipeline</span>
-            <span className="text-sm font-semibold text-white">Awaiting live data</span>
+            <span className="text-sm font-semibold text-white">
+              {isSyncingOfflineQueue
+                ? "Syncing queued reports"
+                : queueCount > 0
+                  ? `${queueCount} queued for sync`
+                  : "Live pipeline ready"}
+            </span>
           </div>
         </CardContent>
       </Card>
