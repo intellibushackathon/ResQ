@@ -45,7 +45,7 @@ export const publicNavItems: NavItem[] = [
     to: "/login",
     label: "Login",
     shortLabel: "Login",
-    description: "Preview secure account access and responder sign-in flows.",
+    description: "Secure account access and responder sign-in flows.",
   },
   {
     to: "/dashboard",
@@ -102,7 +102,7 @@ export const publicRouteMeta: RouteMeta[] = [
       "A polished intake surface for public incident reporting, designed to stay calm under pressure and remain ready for offline workflows later.",
     eyebrow: "Public application tree",
     category: "Citizen reporting",
-    status: "Ready for UI feature build-out",
+    status: "Citizen access enabled",
   },
   {
     path: "/my-reports",
@@ -111,7 +111,7 @@ export const publicRouteMeta: RouteMeta[] = [
       "A route-aware shell for reviewing previous submissions, monitoring report status, and surfacing follow-up actions when case logic arrives.",
     eyebrow: "Public reporting history",
     category: "Citizen reporting",
-    status: "Prepared for case history components",
+    status: "Report history available",
   },
   {
     path: "/alerts",
@@ -120,7 +120,7 @@ export const publicRouteMeta: RouteMeta[] = [
       "An intentional alert-reading environment for residents and field teams to scan urgent notices, priority zones, and public safety directives.",
     eyebrow: "Public alerts",
     category: "Public alerts",
-    status: "Prepared for live advisory feeds",
+    status: "Critical feed active",
   },
   {
     path: "/safe-zones",
@@ -129,16 +129,16 @@ export const publicRouteMeta: RouteMeta[] = [
       "A navigation shell for shelter directories, assembly points, and fallback locations with room for route-specific safety content later.",
     eyebrow: "Public safety",
     category: "Public safety",
-    status: "Prepared for location cards and filters",
+    status: "Shelter directory active",
   },
   {
     path: "/login",
     title: "Secure access entry",
     subtitle:
-      "A composed account entry surface for citizens, responders, and operators, without introducing real authentication behavior in this phase.",
+      "A composed account entry surface for citizens, responders, and operators across the live Supabase-backed session flow.",
     eyebrow: "Access control",
     category: "Access control",
-    status: "Prepared for auth-facing components",
+    status: "Authentication active",
   },
   {
     path: "/dashboard",
@@ -147,7 +147,7 @@ export const publicRouteMeta: RouteMeta[] = [
       "A mission-ready responder shell that can host verification, dispatch, and coordination tools once operational workflows are implemented.",
     eyebrow: "Responder operations",
     category: "Responder operations",
-    status: "Prepared for responder tooling",
+    status: "Protected responder route",
   },
 ];
 
@@ -159,7 +159,7 @@ export const adminRouteMeta: RouteMeta[] = [
       "A distinct operations-focused shell for supervisors and incident leads, tuned for monitoring platform health, queue pressure, and readiness.",
     eyebrow: "Admin application tree",
     category: "Operations",
-    status: "Prepared for operations dashboards",
+    status: "Protected operations route",
   },
   {
     path: "/admin/moderation",
@@ -168,7 +168,7 @@ export const adminRouteMeta: RouteMeta[] = [
       "A high-signal review space for verification queues, severity overrides, and triage routing without introducing the workflow logic yet.",
     eyebrow: "Admin moderation",
     category: "Operations",
-    status: "Prepared for moderation queues",
+    status: "Protected operations route",
   },
   {
     path: "/admin/audit-logs",
@@ -177,7 +177,7 @@ export const adminRouteMeta: RouteMeta[] = [
       "A structured shell for action history, compliance review, and operator traceability across the administration workspace.",
     eyebrow: "Admin audit logs",
     category: "Operations",
-    status: "Prepared for audit timelines",
+    status: "Protected operations route",
   },
   {
     path: "/admin/system-controls",
@@ -186,7 +186,7 @@ export const adminRouteMeta: RouteMeta[] = [
       "A distinct control surface for feature toggles, policy states, and operational safeguards with room for future critical actions.",
     eyebrow: "Admin system controls",
     category: "Operations",
-    status: "Prepared for system control modules",
+    status: "Protected operations route",
   },
   {
     path: "/admin/team",
@@ -195,16 +195,16 @@ export const adminRouteMeta: RouteMeta[] = [
       "A staffing and readiness shell for duty rotations, team status, and coordination signals across emergency operations.",
     eyebrow: "Admin team",
     category: "Operations",
-    status: "Prepared for roster and staffing modules",
+    status: "Protected operations route",
   },
   {
     path: "/admin/settings",
     title: "Administrative settings shell",
     subtitle:
-      "A polished administration settings route for platform-level configuration, thresholds, and integration setup in later phases.",
+      "A polished administration settings route for platform-level configuration, thresholds, and integration setup.",
     eyebrow: "Admin settings",
     category: "Operations",
-    status: "Prepared for platform configuration",
+    status: "Protected operations route",
   },
 ];
 

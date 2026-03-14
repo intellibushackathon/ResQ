@@ -1,0 +1,423 @@
+import type { Session, User } from "@supabase/supabase-js";
+import { create } from "zustand";
+import { supabase, type AppRole, type ProfileRecord } from "../lib/supabase";
+
+export type AuthBackend = "supabase";
+
+export type AuthSession = {
+  uid: string;
+  role: AppRole;
+  displayName: string;
+  email: string | null;
+  isAnonymous: boolean;
+  staffOrg: string | null;
+};
+
+type SignInInput = {
+  email: string;
+  password: string;
+};
+
+type SignUpInput = {
+  fullName?: string;
+  email: string;
+  password: string;
+};
+
+type AuthState = {
+  session: AuthSession | null;
+  backend: AuthBackend;
+  isReady: boolean;
+  isLoading: boolean;
+  authError: string | null;
+  initializeAuth: () => Promise<void>;
+  signIn: (input: SignInInput) => Promise<AuthSession>;
+  signUp: (input: SignUpInput) => Promise<AuthSession>;
+  signOut: () => Promise<void>;
+  clearAuthError: () => void;
+};
+
+export const rolePriority: Record<AppRole, number> = {
+  public: 0,
+  staff: 1,
+  admin: 2,
+};
+
+export function hasRequiredRole(session: AuthSession | null, minimumRole: AppRole) {
+  const currentRole = session?.role ?? "public";
+  return rolePriority[currentRole] >= rolePriority[minimumRole];
+}
+
+export function roleDisplayLabel(role: AppRole) {
+  if (role === "admin") return "Admin";
+  if (role === "staff") return "Responder";
+  return "Citizen Reporter";
+}
+
+export function getDefaultRouteForSession(session: AuthSession | null) {
+  if (session?.role === "admin") return "/admin";
+  if (session?.role === "staff") return "/dashboard";
+  return "/";
+}
+
+let initializePromise: Promise<void> | null = null;
+let authListenerBound = false;
+
+function normalizeRole(role: string | null | undefined): AppRole {
+  if (role === "admin" || role === "staff") return role;
+  return "public";
+}
+
+function getUserMetadata(user: User) {
+  return typeof user.user_metadata === "object" && user.user_metadata ? user.user_metadata : {};
+}
+
+async function fetchOrCreateProfile(user: User): Promise<ProfileRecord> {
+  const metadata = getUserMetadata(user) as Record<string, unknown>;
+  const fallback: ProfileRecord = {
+    id: user.id,
+    email: user.email ?? null,
+    display_name:
+      typeof metadata.full_name === "string"
+        ? metadata.full_name
+        : user.email?.split("@")[0] ?? "ResQ User",
+    role: "public",
+    staff_org: null,
+  };
+
+  if (!supabase) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, email, display_name, role, staff_org")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (error && error.code !== "PGRST116") {
+      throw error;
+    }
+
+    if (data) {
+      return data as ProfileRecord;
+    }
+
+    const { error: upsertError } = await supabase.from("profiles").upsert(
+      {
+        id: user.id,
+        email: fallback.email,
+        display_name: fallback.display_name,
+        role: "public",
+        staff_org: null,
+      },
+      {
+        onConflict: "id",
+      },
+    );
+
+    if (upsertError) {
+      throw upsertError;
+    }
+
+    return fallback;
+  } catch (error) {
+    console.warn("Unable to hydrate auth profile; falling back to public profile.", error);
+    return fallback;
+  }
+}
+
+async function resolveSessionFromUser(user: User): Promise<AuthSession> {
+  const profile = await fetchOrCreateProfile(user);
+
+  return {
+    uid: user.id,
+    role: normalizeRole(profile.role),
+    displayName: profile.display_name ?? user.email?.split("@")[0] ?? "ResQ User",
+    email: profile.email ?? user.email ?? null,
+    isAnonymous: false,
+    staffOrg: profile.staff_org ?? null,
+  };
+}
+
+function bindSupabaseAuthListener(setState: (partial: Partial<AuthState>) => void) {
+  if (!supabase || authListenerBound) return;
+
+  supabase.auth.onAuthStateChange((_event, session: Session | null) => {
+    void (async () => {
+      if (!session?.user) {
+        setState({
+          session: null,
+          backend: "supabase",
+          isReady: true,
+          isLoading: false,
+          authError: null,
+        });
+        return;
+      }
+
+      setState({
+        backend: "supabase",
+        isLoading: true,
+      });
+
+      try {
+        const nextSession = await resolveSessionFromUser(session.user);
+
+        setState({
+          session: nextSession,
+          backend: "supabase",
+          isReady: true,
+          isLoading: false,
+          authError: null,
+        });
+      } catch (error) {
+        setState({
+          session: null,
+          backend: "supabase",
+          isReady: true,
+          isLoading: false,
+          authError: error instanceof Error ? error.message : "Unable to resolve session.",
+        });
+      }
+    })();
+  });
+
+  authListenerBound = true;
+}
+
+export const useAuthStore = create<AuthState>((set, get) => ({
+  session: null,
+  backend: "supabase",
+  isReady: false,
+  isLoading: false,
+  authError: null,
+
+  async initializeAuth() {
+    if (get().isReady && !get().isLoading) {
+      return;
+    }
+
+    if (initializePromise) {
+      return initializePromise;
+    }
+
+    initializePromise = (async () => {
+      set({
+        backend: "supabase",
+        isLoading: true,
+      });
+
+      if (!supabase) {
+        set({
+          backend: "supabase",
+          session: null,
+          isReady: true,
+          isLoading: false,
+          authError: "Supabase is not configured.",
+        });
+        return;
+      }
+
+      bindSupabaseAuthListener((partial) => set(partial));
+
+      const { data, error } = await supabase.auth.getSession();
+
+      if (error) {
+        set({
+          backend: "supabase",
+          session: null,
+          isReady: true,
+          isLoading: false,
+          authError: error.message,
+        });
+        return;
+      }
+
+      if (!data.session?.user) {
+        set({
+          backend: "supabase",
+          session: null,
+          isReady: true,
+          isLoading: false,
+          authError: null,
+        });
+        return;
+      }
+
+      try {
+        const nextSession = await resolveSessionFromUser(data.session.user);
+
+        set({
+          backend: "supabase",
+          session: nextSession,
+          isReady: true,
+          isLoading: false,
+          authError: null,
+        });
+      } catch (sessionError) {
+        set({
+          backend: "supabase",
+          session: null,
+          isReady: true,
+          isLoading: false,
+          authError: sessionError instanceof Error ? sessionError.message : "Unable to resolve session.",
+        });
+      }
+    })().finally(() => {
+      initializePromise = null;
+    });
+
+    return initializePromise;
+  },
+
+  async signIn({ email, password }) {
+    if (!supabase) {
+      const message = "Supabase is not configured.";
+      set({
+        isLoading: false,
+        authError: message,
+      });
+      throw new Error(message);
+    }
+
+    set({
+      isLoading: true,
+      authError: null,
+    });
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
+
+    if (error) {
+      set({
+        isLoading: false,
+        authError: error.message,
+      });
+      throw new Error(error.message);
+    }
+
+    const signedInUser = data.user ?? data.session?.user;
+
+    if (!signedInUser) {
+      const message = "Authentication failed.";
+      set({
+        isLoading: false,
+        authError: message,
+      });
+      throw new Error(message);
+    }
+
+    const nextSession = await resolveSessionFromUser(signedInUser);
+
+    set({
+      session: nextSession,
+      backend: "supabase",
+      isReady: true,
+      isLoading: false,
+      authError: null,
+    });
+
+    return nextSession;
+  },
+
+  async signUp({ fullName, email, password }) {
+    if (!supabase) {
+      const message = "Supabase is not configured.";
+      set({
+        isLoading: false,
+        authError: message,
+      });
+      throw new Error(message);
+    }
+
+    set({
+      isLoading: true,
+      authError: null,
+    });
+
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim().toLowerCase(),
+      password,
+      options: {
+        data: fullName?.trim() ? { full_name: fullName.trim() } : undefined,
+        emailRedirectTo: import.meta.env.VITE_SUPABASE_AUTH_REDIRECT_URL?.trim() || undefined,
+      },
+    });
+
+    if (error) {
+      set({
+        isLoading: false,
+        authError: error.message,
+      });
+      throw new Error(error.message);
+    }
+
+    const signedUpUser = data.user ?? data.session?.user;
+
+    if (!signedUpUser) {
+      const message = "Account created. Check your email to continue.";
+      set({
+        isLoading: false,
+        authError: message,
+      });
+      throw new Error(message);
+    }
+
+    const nextSession = await resolveSessionFromUser(signedUpUser);
+
+    set({
+      session: nextSession,
+      backend: "supabase",
+      isReady: true,
+      isLoading: false,
+      authError: null,
+    });
+
+    return nextSession;
+  },
+
+  async signOut() {
+    if (!supabase) {
+      const message = "Supabase is not configured.";
+      set({
+        isLoading: false,
+        authError: message,
+      });
+      throw new Error(message);
+    }
+
+    set({
+      isLoading: true,
+      authError: null,
+    });
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      set({
+        isLoading: false,
+        authError: error.message,
+      });
+      throw new Error(error.message);
+    }
+
+    set({
+      session: null,
+      backend: "supabase",
+      isReady: true,
+      isLoading: false,
+      authError: null,
+    });
+  },
+
+  clearAuthError() {
+    set({
+      authError: null,
+    });
+  },
+}));
+

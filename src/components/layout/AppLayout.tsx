@@ -5,12 +5,14 @@ import { Button } from "../ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/Card";
 import { Navigation } from "./Navigation";
 import { getRouteMeta, publicNavItems } from "./layout-data";
+import { useAuthStore } from "../../store/useAuthStore";
 
 export function AppLayout() {
   const location = useLocation();
   const routeMeta = getRouteMeta(location.pathname, "public");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [isOnline, setIsOnline] = useState<boolean>(() => navigator.onLine);
+  const initializeAuth = useAuthStore((state) => state.initializeAuth);
 
   useEffect(() => {
     const updateStatus = () => setIsOnline(navigator.onLine);
@@ -23,6 +25,10 @@ export function AppLayout() {
       window.removeEventListener("offline", updateStatus);
     };
   }, []);
+
+  useEffect(() => {
+    void initializeAuth();
+  }, [initializeAuth]);
 
   useEffect(() => {
     setMobileNavOpen(false);
@@ -48,7 +54,7 @@ export function AppLayout() {
                     <Badge variant={isOnline ? "success" : "warning"}>
                       {isOnline ? "Online" : "Offline"}
                     </Badge>
-                    <Badge variant="outline">3 queued for sync</Badge>
+                    <Badge variant="outline">Connectivity aware</Badge>
                   </div>
                   <p className="section-label">{routeMeta.eyebrow}</p>
                   <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -83,8 +89,8 @@ export function AppLayout() {
                     <span className="font-semibold text-white">{isOnline ? "Stable" : "Reconnecting"}</span>
                   </div>
                   <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                    <span className="text-slate-300">Queued reports</span>
-                    <span className="font-semibold text-white">3 pending sync</span>
+                    <span className="text-slate-300">Report pipeline</span>
+                    <span className="font-semibold text-white">Awaiting live data</span>
                   </div>
                   <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <span className="text-slate-300">Shell status</span>
@@ -101,9 +107,9 @@ export function AppLayout() {
             <footer className="mt-8 flex flex-col gap-3 rounded-[28px] border border-white/10 bg-white/[0.04] px-5 py-4 text-sm text-slate-300 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <span className="h-2.5 w-2.5 rounded-full bg-success-500 shadow-[0_0_18px_rgba(22,199,132,0.75)]" />
-                <span>Public shell online. Route tree intact and ready for feature implementation.</span>
+                <span>Public shell online. Citizen reporting, alerts, and route-aware access are available.</span>
               </div>
-              <span className="text-slate-400">ResQ shared layout system | Phase INTELL-02</span>
+              <span className="text-slate-400">ResQ public coordination layer</span>
             </footer>
           </div>
         </main>
