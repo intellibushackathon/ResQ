@@ -1,117 +1,87 @@
-﻿import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Navigate } from "react-router-dom";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/Card";
+import { isSupabaseConfigured } from "../lib/supabase";
+import { getDefaultRouteForSession, useAuthStore } from "../store/useAuthStore";
 
-type AuthMode = "preview" | "supabase";
 type AuthView = "signin" | "signup";
-type Role = "public" | "staff" | "admin";
-
-type AuthAdapter = {
-  initializeAuth: () => Promise<void>;
-  signIn: (input: { email: string; password: string }) => Promise<{ role: Role }>;
-  signUp: (input: { fullName?: string; email: string; password: string }) => Promise<{ role: Role }>;
-  signInAsGuest: () => Promise<{ role: Role }>;
-  signOut: () => Promise<void>;
-  clearAuthError: () => void;
-};
-
-const previewUsers: Record<string, { password: string; role: Role }> = {
-  "responder.preview@resq.local": { password: "preview123", role: "staff" },
-  "admin.preview@resq.local": { password: "preview123", role: "admin" },
-};
-
-const authAdapter: AuthAdapter = {
-  async initializeAuth() {
-    return Promise.resolve();
-  },
-  async signIn({ email, password }) {
-    const user = previewUsers[email.toLowerCase()];
-    if (user && user.password === password) {
-      return { role: user.role };
-    }
-    return { role: "public" };
-  },
-  async signUp() {
-    return { role: "public" };
-  },
-  async signInAsGuest() {
-    return { role: "public" };
-  },
-  async signOut() {
-    return Promise.resolve();
-  },
-  clearAuthError() {},
-};
 
 export function Login() {
-  const [mode, setMode] = useState<AuthMode>("preview");
+  const navigate = useNavigate();
+  const session = useAuthStore((state) => state.session);
+  const isReady = useAuthStore((state) => state.isReady);
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const authError = useAuthStore((state) => state.authError);
+  const initializeAuth = useAuthStore((state) => state.initializeAuth);
+  const signIn = useAuthStore((state) => state.signIn);
+  const signUp = useAuthStore((state) => state.signUp);
+  const clearAuthError = useAuthStore((state) => state.clearAuthError);
+
   const [view, setView] = useState<AuthView>("signin");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [authReady, setAuthReady] = useState(false);
-  const [signedInRole, setSignedInRole] = useState<Role | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
 
   useEffect(() => {
-    void authAdapter.initializeAuth().then(() => setAuthReady(true));
-  }, []);
+    void initializeAuth();
+  }, [initializeAuth]);
+
+  const errorMessage = localError ?? authError;
 
   const defaultRoute = useMemo(() => {
-    if (!signedInRole) return null;
-    if (signedInRole === "admin") return "/admin";
-    if (signedInRole === "staff") return "/dashboard";
-    return "/";
-  }, [signedInRole]);
+    if (!session) return null;
+    return getDefaultRouteForSession(session);
+  }, [session]);
 
   if (defaultRoute) {
     return <Navigate to={defaultRoute} replace />;
   }
 
-  const clearError = () => {
-    setError(null);
-    authAdapter.clearAuthError();
-  };
+  function resetErrors() {
+    setLocalError(null);
+    clearAuthError();
+  }
 
-  const validate = () => {
+  function validate() {
     if (!email.trim() || !password.trim()) {
-      setError("Enter an email and password to continue.");
+      setLocalError("Enter an email and password to continue.");
       return false;
     }
-    return true;
-  };
 
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    return true;
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    clearError();
+    resetErrors();
 
     if (!validate()) {
       return;
     }
 
     try {
-      const result =
-        view === "signin"
-          ? await authAdapter.signIn({ email: email.trim(), password })
-          : await authAdapter.signUp({
+      const nextSession =
+        view === "signup"
+          ? await signUp({
               fullName: fullName.trim() || undefined,
               email: email.trim(),
               password,
+            })
+          : await signIn({
+              email: email.trim(),
+              password,
             });
-      setSignedInRole(result.role);
-    } catch (caught) {
-      const message = caught instanceof Error ? caught.message : "Authentication failed";
-      setError(message);
-    }
-  };
 
-  const onGuestSignIn = async () => {
-    clearError();
-    const result = await authAdapter.signInAsGuest();
-    setSignedInRole(result.role);
-  };
+      navigate(getDefaultRouteForSession(nextSession), { replace: true });
+    } catch (error) {
+      if (error instanceof Error) {
+        setLocalError(error.message);
+      }
+    }
+  }
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
@@ -119,24 +89,18 @@ export function Login() {
         <CardHeader>
           <div className="flex flex-wrap items-center gap-3">
             <Badge>Access entry</Badge>
-            <Badge variant={mode === "preview" ? "warning" : "default"}>
-              {mode === "preview" ? "Preview mode" : "Supabase mode"}
+            <Badge variant={isSupabaseConfigured ? "default" : "danger"}>
+              {isSupabaseConfigured ? "Supabase mode" : "Configuration required"}
             </Badge>
           </div>
           <CardTitle className="text-3xl sm:text-[2rem]">Login or create your account</CardTitle>
           <CardDescription className="max-w-3xl text-base leading-7">
-            Citizen auth surface with preview and Supabase-ready form variants.
+            Citizens, responders, and operators share one access surface, with role-based routing after sign-in.
           </CardDescription>
         </CardHeader>
 
         <CardContent>
           <div className="mb-5 flex flex-wrap gap-2">
-            <Button variant={mode === "preview" ? "default" : "outline"} size="sm" onClick={() => setMode("preview")}>
-              Preview mode
-            </Button>
-            <Button variant={mode === "supabase" ? "default" : "outline"} size="sm" onClick={() => setMode("supabase")}>
-              Supabase mode
-            </Button>
             <Button variant={view === "signin" ? "default" : "outline"} size="sm" onClick={() => setView("signin")}>
               Sign in
             </Button>
@@ -145,7 +109,7 @@ export function Login() {
             </Button>
           </div>
 
-          <form className="space-y-4" onSubmit={onSubmit}>
+          <form className="space-y-4" onSubmit={handleSubmit}>
             {view === "signup" ? (
               <label className="block">
                 <span className="mb-2 block text-sm font-semibold text-slate-200">Full name</span>
@@ -153,7 +117,7 @@ export function Login() {
                   value={fullName}
                   onChange={(event) => setFullName(event.target.value)}
                   className="w-full rounded-2xl border border-white/15 bg-panel-900/70 px-3 py-2 text-sm text-slate-100"
-                  placeholder="Optional in preview mode"
+                  placeholder="Your full name"
                 />
               </label>
             ) : null}
@@ -178,18 +142,18 @@ export function Login() {
               />
             </label>
 
-            {error ? (
-              <div role="alert" className="rounded-2xl border border-danger-400/35 bg-danger-500/12 px-4 py-3 text-sm text-danger-100">
-                {error}
+            {errorMessage ? (
+              <div
+                role="alert"
+                className="rounded-2xl border border-danger-400/35 bg-danger-500/12 px-4 py-3 text-sm text-danger-100"
+              >
+                {errorMessage}
               </div>
             ) : null}
 
             <div className="flex flex-wrap items-center gap-3">
-              <Button type="submit" disabled={!authReady}>
-                {view === "signin" ? "Sign in" : "Create account"}
-              </Button>
-              <Button type="button" variant="outline" onClick={onGuestSignIn} disabled={!authReady}>
-                Continue as guest
+              <Button type="submit" disabled={!isReady || isLoading || !isSupabaseConfigured}>
+                {view === "signup" ? "Create account" : "Sign in"}
               </Button>
             </div>
           </form>
@@ -199,22 +163,23 @@ export function Login() {
       <Card className="p-6">
         <CardHeader>
           <Badge variant="outline" className="w-fit">
-            Preview credentials
+            Supabase account flow
           </Badge>
-          <CardTitle>Role simulation</CardTitle>
-          <CardDescription>Use these users in preview mode to test role-based redirection paths.</CardDescription>
+          <CardTitle>Live backend authentication</CardTitle>
+          <CardDescription>
+            Sign-in and sign-up now use the configured Supabase project directly.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-            <p className="font-semibold text-white">responder.preview@resq.local / preview123</p>
-            <p className="mt-1 text-slate-300">Signs in as staff and routes to `/dashboard`.</p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-            <p className="font-semibold text-white">admin.preview@resq.local / preview123</p>
-            <p className="mt-1 text-slate-300">Signs in as admin and routes to `/admin`.</p>
+            <p className="font-semibold text-white">Sign-up fields</p>
+            <p className="mt-1 text-slate-300">Full name, email, and password.</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-slate-300">
-            Guest sign-in creates an anonymous public session and routes to `/`.
+            Successful sign-up creates a public profile by default. Staff and admin elevation require profile updates.
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-slate-300">
+            Public routes remain available without signing in. Protected responder and admin routes require an authenticated session with the correct role.
           </div>
         </CardContent>
       </Card>

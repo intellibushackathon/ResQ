@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from "react";
 import { cn } from "../../lib/utils";
 
-type BadgeVariant = "default" | "danger" | "warning" | "success" | "outline";
+export type BadgeVariant = "default" | "danger" | "warning" | "success" | "outline";
 
 const badgeVariants: Record<BadgeVariant, string> = {
   default: "border-brand-400/30 bg-brand-500/15 text-brand-100",

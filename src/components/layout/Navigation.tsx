@@ -1,11 +1,13 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/Card";
 import { cn } from "../../lib/utils";
 import { BrandMark } from "./BrandMark";
 import type { NavItem } from "./layout-data";
+import { roleDisplayLabel, useAuthStore } from "../../store/useAuthStore";
+import type { BadgeVariant } from "../ui/Badge";
 
 type NavigationProps = {
   items: NavItem[];
@@ -13,7 +15,31 @@ type NavigationProps = {
   onToggle: () => void;
 };
 
-function NavigationContent({ items, onToggle }: Pick<NavigationProps, "items" | "onToggle">) {
+type NavigationContentProps = Pick<NavigationProps, "items" | "onToggle"> & {
+  roleLabel: string;
+  accountName: string;
+  accountMode: string;
+  backendLabel: string;
+  accountDescription: string;
+  roleVariant: BadgeVariant;
+  showSignOut: boolean;
+  onSignOut: () => Promise<void>;
+  onSignIn: () => void;
+};
+
+function NavigationContent({
+  items,
+  onToggle,
+  roleLabel,
+  accountName,
+  accountMode,
+  backendLabel,
+  accountDescription,
+  roleVariant,
+  showSignOut,
+  onSignOut,
+  onSignIn,
+}: NavigationContentProps) {
   return (
     <div className="flex h-full flex-col gap-6">
       <div className="flex items-center gap-3">
@@ -34,8 +60,8 @@ function NavigationContent({ items, onToggle }: Pick<NavigationProps, "items" | 
             <Badge variant="success">Online-ready</Badge>
           </div>
           <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-            <span>Sync queue</span>
-            <span className="text-sm font-semibold text-white">3 queued for sync</span>
+            <span>Report pipeline</span>
+            <span className="text-sm font-semibold text-white">Awaiting live data</span>
           </div>
         </CardContent>
       </Card>
@@ -82,21 +108,28 @@ function NavigationContent({ items, onToggle }: Pick<NavigationProps, "items" | 
           <Badge variant="outline" className="w-fit">
             Account panel
           </Badge>
-          <CardTitle className="text-lg">Guest operator</CardTitle>
-          <CardDescription>Preview role context without enabling real auth logic.</CardDescription>
+          <CardTitle className="text-lg">{accountName}</CardTitle>
+          <CardDescription>{accountDescription}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-slate-300">
-          <div className="flex items-center justify-between">
-            <span>Mode</span>
-            <span className="font-semibold text-white">Observation</span>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant={roleVariant}>{roleLabel}</Badge>
+            <Badge variant="outline">{accountMode}</Badge>
+            <Badge variant="outline">{backendLabel}</Badge>
           </div>
           <div className="flex items-center justify-between">
-            <span>Preparedness</span>
-            <span className="font-semibold text-white">Nominal</span>
+            <span>Access state</span>
+            <span className="font-semibold text-white">{showSignOut ? "Authenticated" : "Public session"}</span>
           </div>
-          <Button variant="outline" className="w-full">
-            Review access surface
-          </Button>
+          {showSignOut ? (
+            <Button variant="outline" className="w-full" onClick={() => void onSignOut()}>
+              Sign out
+            </Button>
+          ) : (
+            <Button variant="outline" className="w-full" onClick={onSignIn}>
+              Sign in
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -104,11 +137,50 @@ function NavigationContent({ items, onToggle }: Pick<NavigationProps, "items" | 
 }
 
 export function Navigation({ items, open, onToggle }: NavigationProps) {
+  const navigate = useNavigate();
+  const session = useAuthStore((state) => state.session);
+  const signOut = useAuthStore((state) => state.signOut);
+
+  const currentRole = session?.role ?? "public";
+  const roleLabel = roleDisplayLabel(currentRole);
+  const roleVariant: BadgeVariant =
+    currentRole === "admin" ? "danger" : currentRole === "staff" ? "warning" : "default";
+  const accountName = session?.displayName ?? "Public access";
+  const accountMode = session ? "Signed in" : "Not signed in";
+  const backendLabel = "Supabase";
+  const accountDescription = !session
+    ? "Public routes remain available while protected routes require responder or admin sign-in."
+    : "Route access is determined by your active role and backend session.";
+  const showSignOut = Boolean(session);
+
+  async function handleSignOut() {
+    await signOut();
+    onToggle();
+    navigate("/login", { replace: true });
+  }
+
+  function handleSignIn() {
+    onToggle();
+    navigate("/login");
+  }
+
   return (
     <>
       <aside className="hidden w-[320px] shrink-0 lg:block">
         <div className="sticky top-6 h-[calc(100vh-3rem)] rounded-[32px] border border-white/10 bg-panel-900/72 p-5 shadow-panel backdrop-blur-2xl">
-          <NavigationContent items={items} onToggle={onToggle} />
+          <NavigationContent
+            accountDescription={accountDescription}
+            accountMode={accountMode}
+            accountName={accountName}
+            backendLabel={backendLabel}
+            items={items}
+            onSignIn={handleSignIn}
+            onSignOut={handleSignOut}
+            onToggle={onToggle}
+            roleLabel={roleLabel}
+            roleVariant={roleVariant}
+            showSignOut={showSignOut}
+          />
         </div>
       </aside>
 
@@ -136,7 +208,19 @@ export function Navigation({ items, open, onToggle }: NavigationProps) {
                 </Button>
               </div>
               <div className="min-h-0 flex-1 overflow-y-auto">
-                <NavigationContent items={items} onToggle={onToggle} />
+                <NavigationContent
+                  accountDescription={accountDescription}
+                  accountMode={accountMode}
+                  accountName={accountName}
+                  backendLabel={backendLabel}
+                  items={items}
+                  onSignIn={handleSignIn}
+                  onSignOut={handleSignOut}
+                  onToggle={onToggle}
+                  roleLabel={roleLabel}
+                  roleVariant={roleVariant}
+                  showSignOut={showSignOut}
+                />
               </div>
             </motion.div>
           </motion.div>

@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/Card";
 import { BrandMark } from "./BrandMark";
 import { getRouteMeta, adminNavItems } from "./layout-data";
 import { cn } from "../../lib/utils";
+import { roleDisplayLabel, useAuthStore } from "../../store/useAuthStore";
 
 export function AdminLayout() {
+  const navigate = useNavigate();
   const location = useLocation();
   const routeMeta = getRouteMeta(location.pathname, "admin");
   const [isOnline, setIsOnline] = useState<boolean>(() => navigator.onLine);
+  const session = useAuthStore((state) => state.session);
+  const signOut = useAuthStore((state) => state.signOut);
 
   useEffect(() => {
     const updateStatus = () => setIsOnline(navigator.onLine);
@@ -23,6 +27,11 @@ export function AdminLayout() {
       window.removeEventListener("offline", updateStatus);
     };
   }, []);
+
+  async function handleSignOut() {
+    await signOut();
+    navigate("/login", { replace: true });
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,91,115,0.14),transparent_28%),radial-gradient(circle_at_top_right,rgba(36,145,255,0.14),transparent_32%),linear-gradient(180deg,#07101d_0%,#081423_45%,#050c16_100%)] px-4 py-4 sm:px-6 sm:py-6">
@@ -87,14 +96,24 @@ export function AdminLayout() {
               <Badge variant="outline" className="w-fit">
                 Admin status
               </Badge>
-              <CardTitle className="text-lg">Coordination lane</CardTitle>
+              <CardTitle className="text-lg">{session?.displayName ?? "Admin session"}</CardTitle>
               <CardDescription>
-                Placeholder controls only, intentionally scoped away from real workflows.
+                {session
+                  ? `${roleDisplayLabel(session.role)} access on the Supabase backend.`
+                  : "Administrative access is active for this route tree."}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Button variant="ghost" className="w-full justify-center border border-white/10">
-                Review operator access
+            <CardContent className="space-y-3 text-sm text-slate-300">
+              <div className="flex items-center justify-between">
+                <span>Role</span>
+                <span className="font-semibold text-white">{roleDisplayLabel(session?.role ?? "admin")}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Backend</span>
+                <span className="font-semibold text-white">Supabase</span>
+              </div>
+              <Button variant="ghost" className="w-full justify-center border border-white/10" onClick={() => void handleSignOut()}>
+                Sign out
               </Button>
             </CardContent>
           </Card>
@@ -110,7 +129,7 @@ export function AdminLayout() {
                     <Badge variant={isOnline ? "success" : "warning"}>
                       {isOnline ? "Network stable" : "Offline mode"}
                     </Badge>
-                    <Badge variant="outline">17 actions awaiting review</Badge>
+                    <Badge variant="outline">Live metrics pending</Badge>
                   </div>
                   <p className="section-label text-danger-100/60">{routeMeta.eyebrow}</p>
                   <h1 className="mt-3 font-display text-4xl tracking-[-0.05em] text-white sm:text-5xl">
@@ -136,8 +155,8 @@ export function AdminLayout() {
                     <span className="font-semibold text-white">Guarded</span>
                   </div>
                   <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                    <span className="text-slate-300">Open review items</span>
-                    <span className="font-semibold text-white">17 queued</span>
+                    <span className="text-slate-300">Review queue</span>
+                    <span className="font-semibold text-white">Awaiting live data</span>
                   </div>
                   <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <span className="text-slate-300">Shell status</span>
@@ -154,9 +173,9 @@ export function AdminLayout() {
             <footer className="mt-8 flex flex-col gap-3 rounded-[28px] border border-danger-400/10 bg-danger-500/[0.05] px-5 py-4 text-sm text-slate-300 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <span className="h-2.5 w-2.5 rounded-full bg-danger-500 shadow-[0_0_18px_rgba(255,91,115,0.75)]" />
-                <span>Admin shell isolated from public presentation and ready for workflow modules.</span>
+                <span>Admin shell remains isolated from the public experience and protected by role gating.</span>
               </div>
-              <span className="text-slate-400">Operations layout | No live controls in this phase</span>
+              <span className="text-slate-400">Operations layout | Protected route tree</span>
             </footer>
           </div>
         </main>
