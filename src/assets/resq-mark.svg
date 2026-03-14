@@ -1,0 +1,20 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M64 8L103.5 20.5L108 62C108 86.2 91.4 107.9 64 120C36.6 107.9 20 86.2 20 62L24.5 20.5L64 8Z" fill="url(#paint0_linear_201_4)"/>
+  <path d="M64 14L98.5 24.9L102.5 61.2C102.5 82.4 88 101.1 64 112C40 101.1 25.5 82.4 25.5 61.2L29.5 24.9L64 14Z" fill="#0A1625" fill-opacity="0.34" stroke="white" stroke-opacity="0.6" stroke-width="2"/>
+  <path d="M64 18V60H28.6L31.9 27.5L64 18Z" fill="#2491FF"/>
+  <path d="M64 18L96.1 27.5L99.4 60H64V18Z" fill="#16C784"/>
+  <path d="M64 109.3C42.9 98.9 29.7 81.7 28.6 60H64V109.3Z" fill="#FFB020"/>
+  <path d="M64 109.3V60H99.4C98.3 81.7 85.1 98.9 64 109.3Z" fill="#FF5B73"/>
+  <path d="M64 37C74.5 37 83 45.5 83 56C83 66.5 74.5 75 64 75C53.5 75 45 66.5 45 56C45 45.5 53.5 37 64 37Z" fill="white" fill-opacity="0.88"/>
+  <path d="M64 44C70.6 44 76 49.4 76 56C76 66.4 64 84 64 84C64 84 52 66.4 52 56C52 49.4 57.4 44 64 44Z" fill="#DDE9F6" stroke="#7F92A7" stroke-width="1.2"/>
+  <path d="M64 51C66.7614 51 69 53.2386 69 56C69 58.7614 66.7614 61 64 61C61.2386 61 59 58.7614 59 56C59 53.2386 61.2386 51 64 51Z" fill="#0F172A"/>
+  <path d="M64 53.2V58.3" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M64 61.2H64.01" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="paint0_linear_201_4" x1="64" y1="8" x2="64" y2="120" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FBFF"/>
+      <stop offset="0.48" stop-color="#D3E0F0"/>
+      <stop offset="1" stop-color="#9FB2C9"/>
+    </linearGradient>
+  </defs>
+</svg>
