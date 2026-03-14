@@ -59,7 +59,7 @@ function NavigationContent({
   return (
     <div className="flex h-full flex-col gap-6">
       <div className="flex justify-center">
-        <BrandMark className="h-auto w-[300px] max-w-full drop-shadow-[0_10px_30px_rgba(36,145,255,0.18)]" />
+        <BrandMark className="h-auto w-[240px] max-w-full drop-shadow-[0_10px_30px_rgba(36,145,255,0.18)]" />
       </div>
 
       <Card className="rounded-[24px] border-brand-400/20 bg-brand-500/10 p-4">

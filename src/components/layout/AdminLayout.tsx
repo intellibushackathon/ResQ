@@ -38,7 +38,7 @@ export function AdminLayout() {
       <div className="mx-auto grid max-w-[1500px] gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
         <aside className="glass-panel rounded-[32px] border border-danger-400/10 p-5 shadow-[0_28px_70px_rgba(0,0,0,0.34)]">
           <div className="flex justify-center">
-            <BrandMark className="h-auto w-[300px] max-w-full drop-shadow-[0_10px_30px_rgba(36,145,255,0.16)]" />
+            <BrandMark className="h-auto w-[240px] max-w-full drop-shadow-[0_10px_30px_rgba(36,145,255,0.16)]" />
           </div>
           <p className="mt-3 text-xs uppercase tracking-[0.26em] text-danger-100/75">Administrative shell</p>
 
