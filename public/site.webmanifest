@@ -2,10 +2,28 @@
   "name": "ResQ",
   "short_name": "ResQ",
   "description": "Disaster intelligence and emergency coordination platform.",
-  "start_url": "/",
-  "display": "standalone",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48 32x32 16x16",
+      "type": "image/x-icon",
+      "purpose": "any"
+    }
+  ],
+  "theme_color": "#06111f",
   "background_color": "#06111f",
-  "theme_color": "#2491ff",
-  "icons": []
+  "display": "standalone",
+  "start_url": "/"
 }
-
