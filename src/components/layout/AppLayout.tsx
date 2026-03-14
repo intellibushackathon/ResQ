@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Navigation } from "./Navigation";
 import { getRouteMeta, publicNavItems } from "./layout-data";
 import { useAuthStore } from "../../store/useAuthStore";
+import { useReportStore } from "../../store/useReportStore";
 
 export function AppLayout() {
   const location = useLocation();
@@ -13,6 +14,15 @@ export function AppLayout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [isOnline, setIsOnline] = useState<boolean>(() => navigator.onLine);
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
+  const authReady = useAuthStore((state) => state.isReady);
+  const session = useAuthStore((state) => state.session);
+  const sessionUid = session?.uid ?? null;
+  const sessionRole = session?.role ?? "public";
+  const initializeReports = useReportStore((state) => state.initializeReports);
+  const syncOfflineQueue = useReportStore((state) => state.syncOfflineQueue);
+  const queueCount = useReportStore((state) => state.offlineQueue.length);
+  const isSyncingOfflineQueue = useReportStore((state) => state.isSyncingOfflineQueue);
+  const syncStatusMessage = useReportStore((state) => state.syncStatusMessage);
 
   useEffect(() => {
     const updateStatus = () => setIsOnline(navigator.onLine);
@@ -29,6 +39,25 @@ export function AppLayout() {
   useEffect(() => {
     void initializeAuth();
   }, [initializeAuth]);
+
+  useEffect(() => {
+    if (!authReady) {
+      return;
+    }
+
+    void initializeReports(sessionUid ? { uid: sessionUid, role: sessionRole } : null);
+  }, [authReady, initializeReports, sessionRole, sessionUid]);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      void syncOfflineQueue(sessionUid ? { uid: sessionUid, role: sessionRole } : null);
+    };
+
+    window.addEventListener("online", handleOnline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+    };
+  }, [sessionRole, sessionUid, syncOfflineQueue]);
 
   useEffect(() => {
     setMobileNavOpen(false);
@@ -54,7 +83,9 @@ export function AppLayout() {
                     <Badge variant={isOnline ? "success" : "warning"}>
                       {isOnline ? "Online" : "Offline"}
                     </Badge>
-                    <Badge variant="outline">Connectivity aware</Badge>
+                    <Badge variant="outline">
+                      {queueCount > 0 ? `${queueCount} queued for sync` : "Connectivity aware"}
+                    </Badge>
                   </div>
                   <p className="section-label">{routeMeta.eyebrow}</p>
                   <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -90,7 +121,13 @@ export function AppLayout() {
                   </div>
                   <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <span className="text-slate-300">Report pipeline</span>
-                    <span className="font-semibold text-white">Awaiting live data</span>
+                    <span className="font-semibold text-white">
+                      {isSyncingOfflineQueue
+                        ? "Syncing queued reports"
+                        : queueCount > 0
+                          ? `${queueCount} pending sync`
+                          : "Live data ready"}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <span className="text-slate-300">Shell status</span>
@@ -106,8 +143,17 @@ export function AppLayout() {
 
             <footer className="mt-8 flex flex-col gap-3 rounded-[28px] border border-white/10 bg-white/[0.04] px-5 py-4 text-sm text-slate-300 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
-                <span className="h-2.5 w-2.5 rounded-full bg-success-500 shadow-[0_0_18px_rgba(22,199,132,0.75)]" />
-                <span>Public shell online. Citizen reporting, alerts, and route-aware access are available.</span>
+                <span
+                  className={`h-2.5 w-2.5 rounded-full shadow-[0_0_18px_rgba(22,199,132,0.75)] ${
+                    isOnline ? "bg-success-500" : "bg-warning-500"
+                  }`}
+                />
+                <span>
+                  {syncStatusMessage ??
+                    (isOnline
+                      ? "Public shell online. Citizen reporting, alerts, and route-aware access are available."
+                      : "Offline mode active. Queued report drafts will sync when connectivity returns.")}
+                </span>
               </div>
               <span className="text-slate-400">ResQ public coordination layer</span>
             </footer>
