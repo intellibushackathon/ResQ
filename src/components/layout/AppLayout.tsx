@@ -74,10 +74,10 @@ export function AppLayout() {
 
         <main className="min-w-0 flex-1">
           <div className="glass-panel min-h-[calc(100vh-2rem)] rounded-[36px] border border-white/10 px-5 py-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:px-8 sm:py-8">
-            <header className="mb-8 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-              <Card className="relative overflow-hidden bg-[linear-gradient(135deg,rgba(36,145,255,0.22),rgba(9,24,43,0.7)_50%,rgba(22,199,132,0.08))] p-0">
+            <header className="mb-8 grid items-stretch gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+              <Card className="relative h-full overflow-hidden bg-[linear-gradient(135deg,rgba(36,145,255,0.22),rgba(9,24,43,0.7)_50%,rgba(22,199,132,0.08))] p-0">
                 <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-brand-200/60 to-transparent" />
-                <div className="p-6 sm:p-8">
+                <div className="flex h-full flex-col p-6 sm:p-8">
                   <div className="mb-5 flex flex-wrap items-center gap-3">
                     <Badge>{routeMeta.category}</Badge>
                     <Badge variant={isOnline ? "success" : "warning"}>
@@ -104,7 +104,8 @@ export function AppLayout() {
                 </div>
               </Card>
 
-              <Card className="p-5">
+              <Card className="h-full p-5">
+                <div className="flex h-full flex-col">
                 <CardHeader className="mb-4 gap-2">
                   <Badge variant="outline" className="w-fit">
                     Status strip
@@ -114,7 +115,7 @@ export function AppLayout() {
                     Shared shell indicators for connectivity, queue state, and route posture.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3 text-sm">
+                <CardContent className="flex flex-1 flex-col justify-between space-y-3 text-sm">
                   <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <span className="text-slate-300">Network status</span>
                     <span className="font-semibold text-white">{isOnline ? "Stable" : "Reconnecting"}</span>
@@ -134,6 +135,7 @@ export function AppLayout() {
                     <span className="font-semibold text-white">{routeMeta.status}</span>
                   </div>
                 </CardContent>
+                </div>
               </Card>
             </header>
 

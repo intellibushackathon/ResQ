@@ -1,3 +1,3 @@
-export function BrandMark({ className = "h-auto w-[148px]" }: { className?: string }) {
-  return <img src="/Logo_Disaster intelligence.png" alt="ResQ Disaster Intelligence" className={className} />;
+export function BrandMark({ className = "h-auto w-[240px] max-w-full" }: { className?: string }) {
+  return <img src="/ResQ_final (1).png" alt="ResQ Disaster Intelligence" className={className} />;
 }
