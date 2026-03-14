@@ -37,8 +37,8 @@ export function AdminLayout() {
     <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,91,115,0.14),transparent_28%),radial-gradient(circle_at_top_right,rgba(36,145,255,0.14),transparent_32%),linear-gradient(180deg,#07101d_0%,#081423_45%,#050c16_100%)] px-4 py-4 sm:px-6 sm:py-6">
       <div className="mx-auto grid max-w-[1500px] gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
         <aside className="glass-panel rounded-[32px] border border-danger-400/10 p-5 shadow-[0_28px_70px_rgba(0,0,0,0.34)]">
-          <div className="flex items-center gap-3">
-            <BrandMark className="h-auto w-[156px] drop-shadow-[0_10px_30px_rgba(36,145,255,0.16)]" />
+          <div className="flex justify-center">
+            <BrandMark className="h-auto w-[300px] max-w-full drop-shadow-[0_10px_30px_rgba(36,145,255,0.16)]" />
           </div>
           <p className="mt-3 text-xs uppercase tracking-[0.26em] text-danger-100/75">Administrative shell</p>
 
