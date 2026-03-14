@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+﻿import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AdminLayout } from "./components/layout/AdminLayout";
 import { AppLayout } from "./components/layout/AppLayout";
 import { Badge } from "./components/ui/Badge";
@@ -11,6 +11,11 @@ import {
   CardHeader,
   CardTitle,
 } from "./components/ui/Card";
+import { Alerts } from "./pages/Alerts";
+import { Login } from "./pages/Login";
+import { MyReports } from "./pages/MyReports";
+import { SafeZones } from "./pages/SafeZones";
+import { SubmitReport } from "./pages/SubmitReport";
 
 type RouteDefinition = {
   path: string;
@@ -20,42 +25,7 @@ type RouteDefinition = {
   status: string;
 };
 
-const publicRoutes: RouteDefinition[] = [
-  {
-    path: "/",
-    title: "Submit Report",
-    subtitle: "Citizen incident submission with media, GPS, offline queue, and AI triage hooks.",
-    category: "Citizen reporting",
-    status: "Ready for UI feature build-out",
-  },
-  {
-    path: "/my-reports",
-    title: "My Reports",
-    subtitle: "Citizen incident history with status-based browsing and incident detail affordances.",
-    category: "Citizen reporting",
-    status: "Prepared for case history components",
-  },
-  {
-    path: "/alerts",
-    title: "Alerts",
-    subtitle: "Critical unresolved incident feed for citizens and field responders.",
-    category: "Public alerts",
-    status: "Prepared for live advisory feeds",
-  },
-  {
-    path: "/safe-zones",
-    title: "Safe Zones",
-    subtitle: "Static shelter and fallback-location directory for disaster response.",
-    category: "Public safety",
-    status: "Prepared for location cards and filters",
-  },
-  {
-    path: "/login",
-    title: "Login",
-    subtitle: "Preview-mode and Supabase auth bridge for citizens, staff, and admin users.",
-    category: "Access control",
-    status: "Prepared for auth-facing components",
-  },
+const responderRoutes: RouteDefinition[] = [
   {
     path: "/dashboard",
     title: "Dashboard",
@@ -118,8 +88,6 @@ type PlaceholderSceneProps = {
 function PlaceholderScene({ route, section }: PlaceholderSceneProps) {
   const accentBadge = section === "admin" ? "danger" : "default";
   const secondaryBadge = section === "admin" ? "warning" : "success";
-  const firstMetric = section === "admin" ? "17 review items" : "3 queued for sync";
-  const secondMetric = section === "admin" ? "4 active operators" : "12 public alerts indexed";
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
@@ -139,15 +107,13 @@ function PlaceholderScene({ route, section }: PlaceholderSceneProps) {
           <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5">
             <p className="section-label mb-3">Experience intent</p>
             <p className="text-sm leading-7 text-slate-300">
-              This route now lives inside the shared shell system, with navigation, route-aware framing,
-              reusable panels, and clear visual hierarchy ready for real feature work.
+              This route remains placeholder content by design and can be implemented in a future scoped PR.
             </p>
           </div>
           <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5">
             <p className="section-label mb-3">Phase guardrails</p>
             <p className="text-sm leading-7 text-slate-300">
-              The implementation intentionally avoids auth, data fetching, mapping, and workflow logic to
-              stay inside `INTELL-02`.
+              The implementation intentionally avoids extending beyond the current public-page scope.
             </p>
           </div>
         </CardContent>
@@ -170,11 +136,7 @@ function PlaceholderScene({ route, section }: PlaceholderSceneProps) {
         <CardContent className="space-y-4">
           <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4">
             <p className="text-sm text-slate-400">Active signal</p>
-            <p className="mt-2 text-lg font-semibold text-white">{firstMetric}</p>
-          </div>
-          <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4">
-            <p className="text-sm text-slate-400">Supporting metric</p>
-            <p className="mt-2 text-lg font-semibold text-white">{secondMetric}</p>
+            <p className="mt-2 text-lg font-semibold text-white">Pending implementation</p>
           </div>
           <div className="rounded-[22px] border border-dashed border-white/10 bg-transparent p-4 text-sm leading-7 text-slate-300">
             Additional route components can land here next without changing the shell architecture.
@@ -190,11 +152,15 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<AppLayout />}>
-          {publicRoutes.map((route) => (
+          <Route index element={<SubmitReport />} />
+          <Route path="my-reports" element={<MyReports />} />
+          <Route path="alerts" element={<Alerts />} />
+          <Route path="safe-zones" element={<SafeZones />} />
+          <Route path="login" element={<Login />} />
+          {responderRoutes.map((route) => (
             <Route
               key={route.path}
-              index={route.path === "/"}
-              path={route.path === "/" ? undefined : route.path.slice(1)}
+              path={route.path.slice(1)}
               element={<PlaceholderScene route={route} section="public" />}
             />
           ))}
@@ -214,3 +180,4 @@ export default function App() {
     </BrowserRouter>
   );
 }
+
