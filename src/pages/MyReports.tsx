@@ -189,7 +189,7 @@ export function MyReports() {
   return (
     <div className="flex h-[calc(100vh-4rem)] overflow-hidden -mx-4 -my-6 sm:-mx-6 sm:-my-8">
       {/* Left panel - Report list */}
-      <div className="flex w-full max-w-[420px] flex-col border-r border-white/8 lg:max-w-[460px]">
+      <div className={`flex w-full flex-col border-r border-white/8 md:max-w-[420px] lg:max-w-[460px] ${selected && selectedId ? "hidden md:flex" : ""}`}>
         {/* Search bar */}
         <div className="border-b border-white/8 px-4 py-3">
           <div className="relative">
@@ -330,9 +330,20 @@ export function MyReports() {
       </div>
 
       {/* Right panel - Report detail */}
-      <div className="flex-1 overflow-y-auto">
+      <div className={`flex-1 overflow-y-auto ${!selected || !selectedId ? "hidden md:block" : ""}`}>
         {selected ? (
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
+            {/* Mobile back button */}
+            <button
+              type="button"
+              onClick={() => setSelectedId("")}
+              className="mb-4 flex items-center gap-1.5 text-sm text-slate-400 transition hover:text-white md:hidden"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+              Back to reports
+            </button>
             {/* Header */}
             <div className="mb-6">
               <div className="mb-3 flex flex-wrap items-center gap-3">

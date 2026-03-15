@@ -174,12 +174,12 @@ export function AdminLayout() {
   return (
     <div className="relative min-h-screen bg-[radial-gradient(ellipse_at_top_left,rgba(255,91,115,0.06),transparent_50%),linear-gradient(180deg,#07101d_0%,#081423_45%,#050c16_100%)]">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[240px] flex-col border-r border-white/[0.06] bg-[#070f1b]/90 px-4 py-5 backdrop-blur-xl xl:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[240px] flex-col border-r border-white/[0.06] bg-[#070f1b]/90 px-4 py-5 backdrop-blur-xl lg:flex">
         <SidebarContent />
       </aside>
 
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-white/[0.06] bg-[#070f1b]/90 px-4 backdrop-blur-xl xl:hidden">
+      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-white/[0.06] bg-[#070f1b]/90 px-4 backdrop-blur-xl lg:hidden">
         <div className="flex items-center gap-3">
           <BrandMark className="h-auto w-[80px] shrink-0" />
           <Badge variant="danger" className="text-[9px]">Admin</Badge>
@@ -205,7 +205,7 @@ export function AdminLayout() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm xl:hidden"
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden"
               onClick={() => setMobileOpen(false)}
             />
             <motion.aside
@@ -213,7 +213,7 @@ export function AdminLayout() {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", stiffness: 400, damping: 34 }}
-              className="fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-white/[0.06] bg-[#070f1b] px-4 py-5 xl:hidden"
+              className="fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-white/[0.06] bg-[#070f1b] px-4 py-5 lg:hidden"
             >
               <div className="mb-4 flex items-center justify-end">
                 <button
@@ -232,7 +232,7 @@ export function AdminLayout() {
       </AnimatePresence>
 
       {/* Main content */}
-      <div className="xl:pl-[240px]">
+      <div className="lg:pl-[240px]">
         <div className="mx-auto max-w-[1100px] px-4 py-5 sm:px-6 sm:py-6">
           {/* Page header */}
           <header className="mb-6">

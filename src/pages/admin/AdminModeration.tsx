@@ -76,7 +76,7 @@ export function AdminModeration() {
   return (
     <div className="space-y-6">
       {/* Metric strip */}
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-white/[0.06] bg-white/[0.06] md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-white/[0.06] bg-white/[0.06] sm:grid-cols-2 md:grid-cols-4">
         <div className="bg-[#0a1628] px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-warning-500/10 text-warning-300">
@@ -151,12 +151,12 @@ export function AdminModeration() {
             incidents={pendingQueue}
             selectedIncidentId={selected?.id}
             onSelectIncident={setSelectedId}
-            className="h-[13rem]"
+            className="h-[10rem] sm:h-[13rem]"
           />
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(360px,1.05fr)]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(300px,1.05fr)] xl:grid-cols-[minmax(0,0.95fr)_minmax(360px,1.05fr)]">
         {/* Queue table */}
         <div>
           <div className="mb-3 flex items-center justify-between">
@@ -170,48 +170,52 @@ export function AdminModeration() {
           </div>
 
           <div className="overflow-hidden rounded-lg border border-white/[0.06]">
-            <div className="grid grid-cols-[72px_1fr_90px_64px_90px] gap-2 border-b border-white/[0.06] bg-white/[0.02] px-4 py-2.5 text-[11px] uppercase tracking-widest text-slate-500">
-              <span>ID</span>
-              <span>Source / Intent</span>
-              <span>Risk Level</span>
-              <span>AI</span>
-              <span>Timestamp</span>
-            </div>
+            <div className="overflow-x-auto">
+              <div className="min-w-[460px]">
+                <div className="grid grid-cols-[72px_1fr_90px_64px_90px] gap-2 border-b border-white/[0.06] bg-white/[0.02] px-4 py-2.5 text-[11px] uppercase tracking-widest text-slate-500">
+                  <span>ID</span>
+                  <span>Source / Intent</span>
+                  <span>Risk Level</span>
+                  <span className="hidden sm:block">AI</span>
+                  <span className="hidden sm:block">Timestamp</span>
+                </div>
 
-            {pendingQueue.length > 0 ? (
-              pendingQueue.map((report) => {
-                const isAutoOk = isAutoConfirmEligible(report, adminSettings.autoConfirm);
-                return (
-                  <button
-                    key={report.id}
-                    type="button"
-                    onClick={() => setSelectedId(report.id)}
-                    className={`grid w-full grid-cols-[72px_1fr_90px_64px_90px] items-center gap-2 border-b border-white/[0.04] px-4 py-3 text-left text-sm transition ${
-                      selected?.id === report.id
-                        ? "bg-brand-500/8 border-l-2 border-l-brand-400"
-                        : "bg-[#0a1628] hover:bg-white/[0.03]"
-                    }`}
-                  >
-                    <span className="font-mono text-xs text-brand-300">#{report.id.slice(-4)}</span>
-                    <div className="min-w-0">
-                      <p className="truncate font-medium text-white">{report.damageType ?? "Incident"}</p>
-                      <p className="truncate text-xs text-slate-500">{report.description}</p>
-                    </div>
-                    <Badge variant={severityBadgeVariant(report.severity)} className="w-fit text-[10px]">
-                      {report.severity ?? "Medium"}
-                    </Badge>
-                    <span className={`text-xs font-medium ${isAutoOk ? "text-success-300" : "text-slate-500"}`}>
-                      {isAutoOk ? "Ready" : "Manual"}
-                    </span>
-                    <span className="text-xs text-slate-500">{formatAbsoluteTimestamp(report.timestamp)}</span>
-                  </button>
-                );
-              })
-            ) : (
-              <div className="bg-[#0a1628] px-4 py-6 text-center text-sm text-slate-500">
-                No pending reports.
+                {pendingQueue.length > 0 ? (
+                  pendingQueue.map((report) => {
+                    const isAutoOk = isAutoConfirmEligible(report, adminSettings.autoConfirm);
+                    return (
+                      <button
+                        key={report.id}
+                        type="button"
+                        onClick={() => setSelectedId(report.id)}
+                        className={`grid w-full grid-cols-[72px_1fr_90px_64px_90px] items-center gap-2 border-b border-white/[0.04] px-4 py-3 text-left text-sm transition ${
+                          selected?.id === report.id
+                            ? "bg-brand-500/8 border-l-2 border-l-brand-400"
+                            : "bg-[#0a1628] hover:bg-white/[0.03]"
+                        }`}
+                      >
+                        <span className="font-mono text-xs text-brand-300">#{report.id.slice(-4)}</span>
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-white">{report.damageType ?? "Incident"}</p>
+                          <p className="truncate text-xs text-slate-500">{report.description}</p>
+                        </div>
+                        <Badge variant={severityBadgeVariant(report.severity)} className="w-fit text-[10px]">
+                          {report.severity ?? "Medium"}
+                        </Badge>
+                        <span className={`hidden text-xs font-medium sm:block ${isAutoOk ? "text-success-300" : "text-slate-500"}`}>
+                          {isAutoOk ? "Ready" : "Manual"}
+                        </span>
+                        <span className="hidden text-xs text-slate-500 sm:block">{formatAbsoluteTimestamp(report.timestamp)}</span>
+                      </button>
+                    );
+                  })
+                ) : (
+                  <div className="bg-[#0a1628] px-4 py-6 text-center text-sm text-slate-500">
+                    No pending reports.
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
 

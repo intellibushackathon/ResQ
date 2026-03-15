@@ -103,7 +103,7 @@ export function AdminDashboard() {
   return (
     <div className="space-y-6">
       {/* Metric strip — same shape as responder dashboard but with more admin-relevant stats */}
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-white/[0.06] bg-white/[0.06] md:grid-cols-5">
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-white/[0.06] bg-white/[0.06] sm:grid-cols-3 md:grid-cols-5">
         {[
           { label: "Total Reports", value: totalReports, color: "text-brand-300" },
           { label: "Pending", value: pendingReports.length, color: "text-warning-300" },
@@ -129,7 +129,7 @@ export function AdminDashboard() {
       ) : null}
 
       {/* Same two-column layout as responder dashboard: left = map + queue, right = detail */}
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.18fr)_minmax(340px,0.82fr)]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.18fr)_minmax(300px,0.82fr)] xl:grid-cols-[minmax(0,1.18fr)_minmax(340px,0.82fr)]">
         {/* Left column: Map + queue table */}
         <div className="space-y-4">
           {/* Map */}
@@ -138,7 +138,7 @@ export function AdminDashboard() {
               incidents={activeReports}
               selectedIncidentId={selected?.id}
               onSelectIncident={setSelectedId}
-              className="h-[20rem]"
+              className="h-[14rem] sm:h-[18rem] lg:h-[20rem]"
             />
           </div>
 
@@ -156,45 +156,49 @@ export function AdminDashboard() {
             </div>
 
             <div className="overflow-hidden rounded-lg border border-white/[0.06]">
-              <div className="grid grid-cols-[72px_1fr_90px_80px_80px] gap-2 border-b border-white/[0.06] bg-white/[0.02] px-4 py-2.5 text-[11px] uppercase tracking-widest text-slate-500">
-                <span>ID</span>
-                <span>Incident</span>
-                <span>Severity</span>
-                <span>Status</span>
-                <span>Time</span>
-              </div>
+              <div className="overflow-x-auto">
+                <div className="min-w-[480px]">
+                  <div className="grid grid-cols-[72px_1fr_90px_80px_80px] gap-2 border-b border-white/[0.06] bg-white/[0.02] px-4 py-2.5 text-[11px] uppercase tracking-widest text-slate-500">
+                    <span>ID</span>
+                    <span>Incident</span>
+                    <span>Severity</span>
+                    <span className="hidden sm:block">Status</span>
+                    <span className="hidden sm:block">Time</span>
+                  </div>
 
-              {priorityQueue.length > 0 ? (
-                priorityQueue.map((report) => (
-                  <button
-                    key={report.id}
-                    type="button"
-                    onClick={() => { setSelectedId(report.id); setFeedback(null); setAssignFeedback(null); }}
-                    className={`grid w-full grid-cols-[72px_1fr_90px_80px_80px] items-center gap-2 border-b border-white/[0.04] px-4 py-3 text-left text-sm transition ${
-                      selected?.id === report.id
-                        ? "bg-brand-500/8"
-                        : "bg-[#0a1628] hover:bg-white/[0.03]"
-                    }`}
-                  >
-                    <span className="font-mono text-xs text-brand-300">#{report.id.slice(-4)}</span>
-                    <div className="min-w-0">
-                      <p className="truncate font-medium text-white">{report.damageType ?? "Incident"}</p>
-                      <p className="truncate text-xs text-slate-500">{report.locationName}</p>
+                  {priorityQueue.length > 0 ? (
+                    priorityQueue.map((report) => (
+                      <button
+                        key={report.id}
+                        type="button"
+                        onClick={() => { setSelectedId(report.id); setFeedback(null); setAssignFeedback(null); }}
+                        className={`grid w-full grid-cols-[72px_1fr_90px_80px_80px] items-center gap-2 border-b border-white/[0.04] px-4 py-3 text-left text-sm transition ${
+                          selected?.id === report.id
+                            ? "bg-brand-500/8"
+                            : "bg-[#0a1628] hover:bg-white/[0.03]"
+                        }`}
+                      >
+                        <span className="font-mono text-xs text-brand-300">#{report.id.slice(-4)}</span>
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-white">{report.damageType ?? "Incident"}</p>
+                          <p className="truncate text-xs text-slate-500">{report.locationName}</p>
+                        </div>
+                        <Badge variant={severityBadgeVariant(report.severity)} className="w-fit text-[10px]">
+                          {report.severity ?? "Medium"}
+                        </Badge>
+                        <Badge variant={alertStateBadgeVariant(report.alertState)} className="hidden w-fit text-[10px] sm:inline-flex">
+                          {report.alertState ?? "new"}
+                        </Badge>
+                        <span className="hidden text-xs text-slate-500 sm:block">{formatTimeAgo(report.timestamp)}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="bg-[#0a1628] px-4 py-6 text-center text-sm text-slate-500">
+                      No active incidents.
                     </div>
-                    <Badge variant={severityBadgeVariant(report.severity)} className="w-fit text-[10px]">
-                      {report.severity ?? "Medium"}
-                    </Badge>
-                    <Badge variant={alertStateBadgeVariant(report.alertState)} className="w-fit text-[10px]">
-                      {report.alertState ?? "new"}
-                    </Badge>
-                    <span className="text-xs text-slate-500">{formatTimeAgo(report.timestamp)}</span>
-                  </button>
-                ))
-              ) : (
-                <div className="bg-[#0a1628] px-4 py-6 text-center text-sm text-slate-500">
-                  No active incidents.
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
