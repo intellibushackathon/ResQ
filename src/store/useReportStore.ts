@@ -7,9 +7,11 @@ import {
   dispatchReportInDatabase,
   fetchReportsForViewer,
   loadAdminSupportData,
+  patchReportPendingImage,
   resolveReportInDatabase,
   updateSystemSetting,
   verifyReportInDatabase,
+  type PendingImageUpload,
 } from "../lib/supabaseData";
 import {
   DEFAULT_ADMIN_SETTINGS,
@@ -42,6 +44,7 @@ type SubmissionPhase = "idle" | "analyzing" | "submitting" | "success";
 type ReportState = {
   reports: DisasterReport[];
   offlineQueue: QueuedReportDraft[];
+  pendingImageUploads: PendingImageUpload[];
   isReady: boolean;
   isInitializing: boolean;
   isSubmitting: boolean;
@@ -71,6 +74,8 @@ type ReportState = {
   dispatchReport: (id: string) => Promise<DisasterReport>;
   resolveReport: (id: string) => Promise<DisasterReport>;
   syncOfflineQueue: (session: ReportSession) => Promise<void>;
+  uploadPendingImages: (session: ReportSession) => Promise<void>;
+  markDraftAsQRSubmitted: (draftId: string) => void;
   loadAdminData: () => Promise<void>;
   updateAdminSetting: (key: keyof AdminSettings, value: boolean | number) => Promise<void>;
   clearAuthScopedState: () => void;
@@ -129,6 +134,7 @@ export const useReportStore = create<ReportState>()(
     (set, get) => ({
       reports: [],
       offlineQueue: [],
+      pendingImageUploads: [],
       isReady: false,
       isInitializing: false,
       isSubmitting: false,
@@ -157,6 +163,10 @@ export const useReportStore = create<ReportState>()(
         try {
           if (navigator.onLine && get().offlineQueue.length > 0) {
             await get().syncOfflineQueue(session);
+          }
+
+          if (navigator.onLine && get().pendingImageUploads.length > 0) {
+            await get().uploadPendingImages(session);
           }
 
           const liveReports = await fetchReportsForViewer(session?.uid ?? null, session?.role ?? "public");
@@ -229,6 +239,10 @@ export const useReportStore = create<ReportState>()(
             imageDataUrl,
             imageName: input.photoFile.name,
             imageType: input.photoFile.type || "image/jpeg",
+            imageRefId:
+              typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+                ? crypto.randomUUID()
+                : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
             damageType: input.damageType,
             description: input.description.trim(),
             lat: Number(input.lat.toFixed(6)),
@@ -366,6 +380,52 @@ export const useReportStore = create<ReportState>()(
         });
       },
 
+      async uploadPendingImages(session) {
+        if (!navigator.onLine || session?.isAnonymous) return;
+
+        const pending = get().pendingImageUploads;
+        if (pending.length === 0) return;
+
+        const remaining: PendingImageUpload[] = [];
+        for (const entry of pending) {
+          try {
+            const patched = await patchReportPendingImage(entry);
+            if (!patched) remaining.push(entry);
+          } catch {
+            remaining.push(entry);
+          }
+        }
+
+        set({ pendingImageUploads: remaining });
+      },
+
+      markDraftAsQRSubmitted(draftId) {
+        const draft = get().offlineQueue.find((d) => d.id === draftId);
+        if (!draft) return;
+
+        const nextReports = removeReportById(get().reports, draftId);
+        const nextQueue = get().offlineQueue.filter((d) => d.id !== draftId);
+
+        // If the draft has an image, park it in pendingImageUploads so Device A
+        // can upload it when connectivity is restored.
+        if (draft.imageRefId && draft.imageDataUrl) {
+          const pendingUpload: PendingImageUpload = {
+            imageRefId: draft.imageRefId,
+            imageDataUrl: draft.imageDataUrl,
+            imageName: draft.imageName,
+            imageType: draft.imageType,
+            submittedBy: draft.submittedBy ?? null,
+          };
+          set((state) => ({
+            offlineQueue: nextQueue,
+            reports: nextReports,
+            pendingImageUploads: [...state.pendingImageUploads, pendingUpload],
+          }));
+        } else {
+          set({ offlineQueue: nextQueue, reports: nextReports });
+        }
+      },
+
       async loadAdminData() {
         set({
           isAdminDataLoading: true,
@@ -420,6 +480,7 @@ export const useReportStore = create<ReportState>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         offlineQueue: state.offlineQueue,
+        pendingImageUploads: state.pendingImageUploads,
         adminSettings: state.adminSettings,
       }),
     },

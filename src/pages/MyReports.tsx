@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { IncidentMap } from "../components/maps/IncidentMap";
 import { Badge } from "../components/ui/Badge";
+import { QRShareModal } from "../components/QRShareModal";
 import { formatConfidence } from "../lib/confidence";
 import {
   REPORT_STATUS_STAGES,
   type DisasterReport,
+  type QueuedReportDraft,
   type ReportStatus,
   type Severity,
   formatTimeAgo,
@@ -109,13 +112,15 @@ function getDamageLabel(report: DisasterReport) {
 export function MyReports() {
   const session = useAuthStore((state) => state.session);
   const reports = useReportStore((state) => state.reports);
+  const offlineQueue = useReportStore((state) => state.offlineQueue);
   const isReady = useReportStore((state) => state.isReady);
   const isInitializing = useReportStore((state) => state.isInitializing);
-  const queueCount = useReportStore((state) => state.offlineQueue.length);
+  const queueCount = offlineQueue.length;
 
   const [activeTab, setActiveTab] = useState<TabFilter>("All Reports");
   const [selectedId, setSelectedId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [qrDraft, setQrDraft] = useState<QueuedReportDraft | null>(null);
 
   const visibleReports = useMemo<DisasterReport[]>(() => {
     const scopedReports = reports.filter((report) => {
@@ -302,7 +307,7 @@ export function MyReports() {
                         {report.description}
                       </p>
 
-                      <div className="mt-2 flex flex-wrap gap-1.5">
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
                         <Badge
                           variant={statusBadgeVariant(report.status)}
                           className="!py-0.5 !text-[9px] !tracking-[0.15em]"
@@ -315,9 +320,26 @@ export function MyReports() {
                           </Badge>
                         )}
                         {report.isOfflineQueued && (
-                          <Badge variant="warning" className="!py-0.5 !text-[9px] !tracking-[0.15em]">
-                            QUEUED
-                          </Badge>
+                          <>
+                            <Badge variant="warning" className="!py-0.5 !text-[9px] !tracking-[0.15em]">
+                              QUEUED
+                            </Badge>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const draft = offlineQueue.find((d) => d.id === report.id);
+                                if (draft) setQrDraft(draft);
+                              }}
+                              className="ml-auto flex items-center gap-1 rounded-lg border border-brand-400/25 bg-brand-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-brand-300 transition hover:bg-brand-500/20"
+                            >
+                              <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 18.75h.75v.75h-.75v-.75ZM18.75 13.5h.75v.75h-.75v-.75ZM18.75 18.75h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z" />
+                              </svg>
+                              Share QR
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -512,6 +534,32 @@ export function MyReports() {
               </div>
             )}
 
+            {/* QR share — shown only for offline queued drafts */}
+            {selected.isOfflineQueued && (
+              <div className="mb-6 flex items-center justify-between rounded-xl border border-brand-400/15 bg-brand-500/[0.05] px-5 py-4">
+                <div>
+                  <p className="text-sm font-semibold text-white">No internet? Share via QR</p>
+                  <p className="mt-0.5 text-[11px] text-slate-500">
+                    Let someone with internet submit this report on your behalf.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const draft = offlineQueue.find((d) => d.id === selected.id);
+                    if (draft) setQrDraft(draft);
+                  }}
+                  className="ml-4 flex shrink-0 items-center gap-1.5 rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-400"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 18.75h.75v.75h-.75v-.75ZM18.75 13.5h.75v.75h-.75v-.75ZM18.75 18.75h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z" />
+                  </svg>
+                  Share QR
+                </button>
+              </div>
+            )}
+
             {/* Progress track */}
             <div className="rounded-xl border border-white/8 bg-white/[0.03] p-5">
               <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Response Progress</h3>
@@ -546,6 +594,16 @@ export function MyReports() {
           </div>
         )}
       </div>
+      {/* QR share modal */}
+      <AnimatePresence>
+        {qrDraft && (
+          <QRShareModal
+            draft={qrDraft}
+            submitterName={session?.displayName ?? null}
+            onClose={() => setQrDraft(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
