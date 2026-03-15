@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Button } from "../ui/Button";
@@ -13,7 +13,7 @@ type NavigationProps = {
   onToggle: () => void;
 };
 
-const NAV_ICONS: Record<string, JSX.Element> = {
+const NAV_ICONS: Record<string, ReactElement> = {
   "/": (
     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
