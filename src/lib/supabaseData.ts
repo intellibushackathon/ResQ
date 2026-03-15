@@ -422,7 +422,6 @@ export async function createReport(payload: CreateReportPayload) {
     reported_at: reportedAt,
     status: toDbReportStatus("Pending Validation"),
     department_routing: toDbDepartmentFilter(analysis.suggestedDepartment),
-    alert_state: "new",
   };
 
   const { data, error } = await client.from(REPORTS_TABLE).insert(insertPayload).select("*").single();
