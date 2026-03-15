@@ -84,7 +84,7 @@ export function QRShareModal({ draft, submitterName, onClose }: Props) {
 
         <div className="px-5 py-5">
           {/* QR code */}
-          <div className="mb-4 flex items-center justify-center rounded-2xl border border-white/8 bg-white/[0.03] p-5">
+          <div className="mb-4 flex items-center justify-center rounded-2xl bg-white p-4">
             {isGenerating ? (
               <div className="flex h-[200px] w-[200px] items-center justify-center">
                 <svg className="h-6 w-6 animate-spin text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

@@ -117,11 +117,11 @@ export async function generateQRDataUrl(payload: QRReportPayload): Promise<strin
   const data = JSON.stringify(payload);
   return QRCode.toDataURL(data, {
     errorCorrectionLevel: "M",
-    margin: 2,
+    margin: 3,
     width: 400,
     color: {
-      dark: "#ffffff",
-      light: "#00000000",
+      dark: "#000000",
+      light: "#ffffff",
     },
   });
 }
