@@ -34,6 +34,7 @@ type AuthState = {
   signIn: (input: SignInInput) => Promise<AuthSession>;
   signUp: (input: SignUpInput) => Promise<AuthSession>;
   signOut: () => Promise<void>;
+  enterGuestMode: () => void;
   clearAuthError: () => void;
 };
 
@@ -59,6 +60,66 @@ export function getDefaultRouteForSession(session: AuthSession | null) {
   if (session?.role === "staff") return "/dashboard";
   return "/";
 }
+
+// ---------------------------------------------------------------------------
+// Guest session helpers (local-only, no Supabase account required)
+// ---------------------------------------------------------------------------
+
+const GUEST_SESSION_KEY = "resq-guest-session";
+const GUEST_UID_KEY = "resq-guest-uid";
+
+function loadGuestSession(): AuthSession | null {
+  try {
+    const raw = localStorage.getItem(GUEST_SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as unknown;
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      "uid" in parsed &&
+      "isAnonymous" in parsed &&
+      (parsed as Record<string, unknown>).isAnonymous === true
+    ) {
+      return parsed as AuthSession;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function saveGuestSession(session: AuthSession): void {
+  localStorage.setItem(GUEST_SESSION_KEY, JSON.stringify(session));
+}
+
+function clearGuestSession(): void {
+  localStorage.removeItem(GUEST_SESSION_KEY);
+}
+
+function createGuestSession(): AuthSession {
+  // Reuse a stable local UID so offline drafts stay consistent across page loads
+  const existingUid = localStorage.getItem(GUEST_UID_KEY);
+  const uid =
+    existingUid ??
+    (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? `guest-${crypto.randomUUID()}`
+      : `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+
+  if (!existingUid) {
+    localStorage.setItem(GUEST_UID_KEY, uid);
+  }
+
+  return {
+    uid,
+    role: "public",
+    displayName: "Guest",
+    email: null,
+    isAnonymous: true,
+    staffOrg: null,
+  };
+}
+
+// ---------------------------------------------------------------------------
 
 let initializePromise: Promise<void> | null = null;
 let authListenerBound = false;
@@ -141,12 +202,19 @@ async function resolveSessionFromUser(user: User): Promise<AuthSession> {
   };
 }
 
-function bindSupabaseAuthListener(setState: (partial: Partial<AuthState>) => void) {
+function bindSupabaseAuthListener(
+  setState: (partial: Partial<AuthState>) => void,
+  getState: () => Pick<AuthState, "session">,
+) {
   if (!supabase || authListenerBound) return;
 
   supabase.auth.onAuthStateChange((_event, session: Session | null) => {
     void (async () => {
       if (!session?.user) {
+        // Don't evict an active guest session when Supabase fires a null event.
+        // The guest session is local-only and unaffected by Supabase sign-in state.
+        if (getState().session?.isAnonymous) return;
+
         setState({
           session: null,
           backend: "supabase",
@@ -156,6 +224,9 @@ function bindSupabaseAuthListener(setState: (partial: Partial<AuthState>) => voi
         });
         return;
       }
+
+      // A real Supabase user signed in — clear any lingering guest session.
+      clearGuestSession();
 
       setState({
         backend: "supabase",
@@ -220,7 +291,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return;
       }
 
-      bindSupabaseAuthListener((partial) => set(partial));
+      bindSupabaseAuthListener((partial) => set(partial), () => get());
 
       const { data, error } = await supabase.auth.getSession();
 
@@ -236,9 +307,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       if (!data.session?.user) {
+        // No Supabase session — restore a persisted guest session if one exists.
+        const guestSession = loadGuestSession();
         set({
           backend: "supabase",
-          session: null,
+          session: guestSession,
           isReady: true,
           isLoading: false,
           authError: null,
@@ -312,6 +385,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     const nextSession = await resolveSessionFromUser(signedInUser);
+    clearGuestSession();
 
     set({
       session: nextSession,
@@ -368,6 +442,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     const nextSession = await resolveSessionFromUser(signedUpUser);
+    clearGuestSession();
 
     set({
       session: nextSession,
@@ -381,6 +456,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   async signOut() {
+    // Always clear local guest state first.
+    clearGuestSession();
+
+    // If the current session is a guest, no Supabase call is needed.
+    if (get().session?.isAnonymous) {
+      set({
+        session: null,
+        backend: "supabase",
+        isReady: true,
+        isLoading: false,
+        authError: null,
+      });
+      return;
+    }
+
     if (!supabase) {
       const message = "Supabase is not configured.";
       set({
@@ -407,6 +497,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     set({
       session: null,
+      backend: "supabase",
+      isReady: true,
+      isLoading: false,
+      authError: null,
+    });
+  },
+
+  enterGuestMode() {
+    const guestSession = createGuestSession();
+    saveGuestSession(guestSession);
+    set({
+      session: guestSession,
       backend: "supabase",
       isReady: true,
       isLoading: false,

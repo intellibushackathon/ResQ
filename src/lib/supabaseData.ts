@@ -239,6 +239,12 @@ async function fetchAiAnalysisMap(reportIds: string[]) {
   return map;
 }
 
+function deriveAlertState(dbStatus: string | null): AlertState {
+  if (dbStatus === "resolved") return "resolved";
+  if (dbStatus === "verified") return "acknowledged";
+  return "new";
+}
+
 async function enrichReportRow(row: ReportRow, analysisMap: Map<string, ReportAIAnalysis>): Promise<DisasterReport> {
   const id = getString(row.id) ?? `${Date.now()}`;
   const photoPath = getNullableString(row.photo_path);
@@ -281,9 +287,11 @@ async function enrichReportRow(row: ReportRow, analysisMap: Map<string, ReportAI
       fromDbDepartmentFilter(getString(row.department_routing) ?? undefined) ?? analysis?.suggestedDepartment,
     ai: analysis,
     submittedBy: getNullableString(row.submitted_by),
-    alertState: (getString(row.alert_state) as AlertState | null) ?? "new",
-    acknowledgedAt: getNullableString(row.acknowledged_at),
-    dispatchedAt: getNullableString(row.dispatched_at),
+    // alert_state, acknowledged_at, and dispatched_at are not schema columns.
+    // Derive alertState from status so the UI reflects the correct workflow stage.
+    alertState: deriveAlertState(getString(row.status)),
+    acknowledgedAt: null,
+    dispatchedAt: null,
     resolvedAt: getNullableString(row.resolved_at),
     verifiedBy: getNullableString(row.verified_by),
   };
@@ -508,31 +516,46 @@ export async function verifyReportInDatabase(
     verifiedBy?: string | null;
   },
 ) {
+  // Only write columns that exist in the live schema.
+  // alert_state and acknowledged_at are not schema columns — they are derived client-side.
   const row = await updateReportRow(reportId, {
     status: toDbReportStatus("Verified"),
     severity: updates.severity ? toDbSeverity(updates.severity) : undefined,
     department_routing: updates.department ? toDbDepartmentFilter(updates.department) : undefined,
     verified_by: updates.verifiedBy ?? null,
-    alert_state: "acknowledged",
-    acknowledged_at: new Date().toISOString(),
   });
 
   return refreshReportRow(row);
 }
 
 export async function dispatchReportInDatabase(reportId: string) {
-  const row = await updateReportRow(reportId, {
-    alert_state: "dispatched",
-    dispatched_at: new Date().toISOString(),
-  });
+  // The live schema has no dispatch column. We fetch the current row and patch
+  // alertState client-side so the UI reflects the dispatched state for the
+  // duration of the session. After a page reload the report will show as
+  // "acknowledged" (derived from status=verified) — documented as a known gap.
+  const client = ensureSupabaseClient();
+  const { data, error } = await client
+    .from(REPORTS_TABLE)
+    .select("*")
+    .eq("id", reportId)
+    .single();
 
-  return refreshReportRow(row);
+  if (error || !data) {
+    throw error ?? new Error("Unable to fetch the report for dispatch.");
+  }
+
+  const report = await refreshReportRow(data as ReportRow);
+  return {
+    ...report,
+    alertState: "dispatched" as AlertState,
+    dispatchedAt: new Date().toISOString(),
+  };
 }
 
 export async function resolveReportInDatabase(reportId: string) {
+  // alert_state is not a schema column — alertState is derived from status client-side.
   const row = await updateReportRow(reportId, {
     status: toDbReportStatus("Resolved"),
-    alert_state: "resolved",
     resolved_at: new Date().toISOString(),
   });
 
@@ -555,6 +578,17 @@ export function parseAdminSettings(rows: FlexibleSystemSettingRow[]) {
   const next = { ...DEFAULT_ADMIN_SETTINGS };
 
   for (const row of rows) {
+    // Direct-column format (live schema: system_settings has named columns, not key-value rows)
+    if (row.privacy_mode !== undefined) next.privacyMode = Boolean(row.privacy_mode);
+    if (row.auto_confirm !== undefined) next.autoConfirm = Boolean(row.auto_confirm);
+    if (row.sms_alerts !== undefined) next.smsAlerts = Boolean(row.sms_alerts);
+    if (row.lockdown_mode !== undefined) next.lockdownMode = Boolean(row.lockdown_mode);
+    if (row.rate_limit !== undefined) {
+      const parsed = getNumber(row.rate_limit);
+      if (parsed != null) next.rateLimit = parsed;
+    }
+
+    // Legacy key-value format (kept for backwards compatibility)
     const key = extractSettingKey(row);
     const rawValue = extractSettingValue(row);
 
@@ -663,7 +697,17 @@ export async function loadAdminSupportData(reportsForFallback: DisasterReport[])
           .map((row) => ({
             id: getString(row.id) ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
             title: getString(row.title) ?? getString(row.action) ?? getString(row.event) ?? "System event",
-            detail: getString(row.detail) ?? getString(row.message) ?? getString(row.description) ?? "No detail provided.",
+            // Live schema stores details as jsonb; stringify it for display.
+            detail:
+              getString(row.detail) ??
+              getString(row.message) ??
+              getString(row.description) ??
+              (row.details !== null && row.details !== undefined
+                ? typeof row.details === "string"
+                  ? row.details
+                  : JSON.stringify(row.details)
+                : null) ??
+              "No detail provided.",
             level: mapAuditLevel(row.level ?? row.severity),
             createdAt:
               getString(row.created_at) ?? getString(row.timestamp) ?? getString(row.logged_at) ?? new Date().toISOString(),
@@ -685,32 +729,20 @@ export async function updateSystemSetting(
 ) {
   const client = ensureSupabaseClient();
 
-  const aliasMap: Record<keyof AdminSettings, string[]> = {
-    privacyMode: ["privacy_mode", "geo_privacy", "mask_coordinates"],
-    autoConfirm: ["auto_confirm", "ai_auto_confirm"],
-    smsAlerts: ["sms_alerts", "emergency_sms_alerts"],
-    rateLimit: ["rate_limit", "api_rate_limit"],
-    lockdownMode: ["lockdown_mode", "system_lockdown"],
+  // Live schema uses a single-row table with direct column names (id=1 enforced by CHECK constraint).
+  const directColumnMap: Record<keyof AdminSettings, string> = {
+    privacyMode: "privacy_mode",
+    autoConfirm: "auto_confirm",
+    smsAlerts: "sms_alerts",
+    rateLimit: "rate_limit",
+    lockdownMode: "lockdown_mode",
   };
 
-  const aliases = aliasMap[key];
-  const existing = rows.find((row) => {
-    const rowKey = extractSettingKey(row);
-    return rowKey ? aliases.includes(rowKey) : false;
-  });
+  const { error } = await client
+    .from(SETTINGS_TABLE)
+    .update({ [directColumnMap[key]]: value })
+    .eq("id", 1);
 
-  const rowKey = extractSettingKey(existing ?? {}) ?? aliases[0];
-  const payload =
-    typeof value === "boolean"
-      ? { key: rowKey, boolean_value: value, value }
-      : { key: rowKey, numeric_value: value, value };
-
-  const existingId = existing?.id;
-  const query = existingId
-    ? client.from(SETTINGS_TABLE).update(payload).eq("id", existingId)
-    : client.from(SETTINGS_TABLE).insert(payload);
-
-  const { error } = await query;
   if (error) {
     throw error;
   }
