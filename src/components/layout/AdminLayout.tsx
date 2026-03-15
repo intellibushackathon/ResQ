@@ -7,6 +7,7 @@ import { BrandMark } from "./BrandMark";
 import { getRouteMeta, adminNavItems } from "./layout-data";
 import { cn } from "../../lib/utils";
 import { roleDisplayLabel, useAuthStore } from "../../store/useAuthStore";
+import { useReportStore } from "../../store/useReportStore";
 
 export function AdminLayout() {
   const navigate = useNavigate();
@@ -15,18 +16,23 @@ export function AdminLayout() {
   const [isOnline, setIsOnline] = useState<boolean>(() => navigator.onLine);
   const session = useAuthStore((state) => state.session);
   const signOut = useAuthStore((state) => state.signOut);
+  const loadAdminData = useReportStore((state) => state.loadAdminData);
+  const reports = useReportStore((state) => state.reports);
+  const isAdminDataLoading = useReportStore((state) => state.isAdminDataLoading);
 
   useEffect(() => {
     const updateStatus = () => setIsOnline(navigator.onLine);
-
     window.addEventListener("online", updateStatus);
     window.addEventListener("offline", updateStatus);
-
     return () => {
       window.removeEventListener("online", updateStatus);
       window.removeEventListener("offline", updateStatus);
     };
   }, []);
+
+  useEffect(() => {
+    void loadAdminData();
+  }, [loadAdminData]);
 
   async function handleSignOut() {
     await signOut();
@@ -54,12 +60,14 @@ export function AdminLayout() {
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                <span className="text-slate-300">Queue pressure</span>
-                <span className="font-semibold text-white">Moderate</span>
+                <span className="text-slate-300">Total reports</span>
+                <span className="font-semibold text-white">{reports.length}</span>
               </div>
               <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                <span className="text-slate-300">Operator mode</span>
-                <span className="font-semibold text-white">Review only</span>
+                <span className="text-slate-300">Admin data</span>
+                <span className="font-semibold text-white">
+                  {isAdminDataLoading ? "Loading..." : "Ready"}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -129,7 +137,6 @@ export function AdminLayout() {
                     <Badge variant={isOnline ? "success" : "warning"}>
                       {isOnline ? "Network stable" : "Offline mode"}
                     </Badge>
-                    <Badge variant="outline">Live metrics pending</Badge>
                   </div>
                   <p className="section-label text-danger-100/60">{routeMeta.eyebrow}</p>
                   <h1 className="mt-3 font-display text-4xl tracking-[-0.05em] text-white sm:text-5xl">
@@ -151,12 +158,14 @@ export function AdminLayout() {
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
                   <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                    <span className="text-slate-300">System posture</span>
-                    <span className="font-semibold text-white">Guarded</span>
+                    <span className="text-slate-300">Network</span>
+                    <span className="font-semibold text-white">
+                      {isOnline ? "Stable" : "Offline"}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                    <span className="text-slate-300">Review queue</span>
-                    <span className="font-semibold text-white">Awaiting live data</span>
+                    <span className="text-slate-300">Reports loaded</span>
+                    <span className="font-semibold text-white">{reports.length}</span>
                   </div>
                   <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <span className="text-slate-300">Shell status</span>

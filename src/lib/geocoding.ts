@@ -103,3 +103,7 @@ export async function reverseGeocode(lat: number, lng: number): Promise<Resolved
     return fallback;
   }
 }
+
+export function clearReverseGeocodeCache() {
+  locationCache.clear();
+}

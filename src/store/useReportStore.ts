@@ -388,7 +388,9 @@ export const useReportStore = create<ReportState>()(
         const nextSettings = await updateSystemSetting(get().adminSettingsRows, key, value);
         set({
           adminSettings: nextSettings,
+          adminSettingsWarning: null,
         });
+        await get().loadAdminData();
       },
 
       clearAuthScopedState() {
