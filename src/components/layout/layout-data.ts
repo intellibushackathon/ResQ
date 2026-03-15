@@ -97,11 +97,11 @@ export const adminNavItems: NavItem[] = [
 export const publicRouteMeta: RouteMeta[] = [
   {
     path: "/",
-    title: "Citizen reporting shell",
+    title: "Submit Incident Report",
     subtitle:
-      "A polished intake surface for public incident reporting, designed to stay calm under pressure and remain ready for offline workflows later.",
-    eyebrow: "Public application tree",
-    category: "Citizen reporting",
+      "Collect visual evidence, lock the location, and push structured alerts into the response queue.",
+    eyebrow: "Field capture",
+    category: "Field capture",
     status: "Citizen access enabled",
   },
   {

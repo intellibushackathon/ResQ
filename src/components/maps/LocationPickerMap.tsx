@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import L from "leaflet";
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import { cn } from "../../lib/utils";
@@ -14,6 +14,7 @@ type LocationPickerMapProps = {
     lng: number;
   };
   onSelectLocation: (location: { lat: number; lng: number }) => void;
+  recenterKey?: number;
   className?: string;
 };
 
@@ -24,14 +25,18 @@ const locationMarkerIcon = L.divIcon({
   iconAnchor: [11, 11],
 });
 
-function RecenterOnTarget({ center }: { center: { lat: number; lng: number } }) {
+function RecenterOnTarget({ center, recenterKey = 0 }: { center: { lat: number; lng: number }; recenterKey?: number }) {
   const map = useMap();
+  const prevKey = useRef(recenterKey);
 
   useEffect(() => {
-    map.flyTo([center.lat, center.lng], Math.max(map.getZoom(), 13), {
-      duration: 0.35,
-    });
-  }, [center.lat, center.lng, map]);
+    if (recenterKey !== prevKey.current) {
+      prevKey.current = recenterKey;
+      map.flyTo([center.lat, center.lng], Math.max(map.getZoom(), 13), {
+        duration: 0.35,
+      });
+    }
+  }, [recenterKey, center.lat, center.lng, map]);
 
   return null;
 }
@@ -55,6 +60,7 @@ export function LocationPickerMap({
   mapCenter = KINGSTON_FALLBACK,
   incidentLocation = mapCenter,
   onSelectLocation,
+  recenterKey,
   className,
 }: LocationPickerMapProps) {
   return (
@@ -64,7 +70,7 @@ export function LocationPickerMap({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <RecenterOnTarget center={mapCenter} />
+        <RecenterOnTarget center={mapCenter} recenterKey={recenterKey} />
         <ClickToPin onSelectLocation={onSelectLocation} />
         <Marker position={[incidentLocation.lat, incidentLocation.lng]} icon={locationMarkerIcon} />
       </MapContainer>
