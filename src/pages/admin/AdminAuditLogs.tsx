@@ -51,18 +51,18 @@ export function AdminAuditLogs() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search by id, title, detail, or level"
-              className="h-11 w-full rounded-2xl border border-white/15 bg-panel-900/60 px-4 text-sm text-slate-100 placeholder:text-slate-500"
+              className="h-11 w-full rounded-xl border border-white/15 bg-panel-900/60 px-4 text-sm text-slate-100 placeholder:text-slate-500"
             />
           </label>
 
           {adminSettingsWarning ? (
-            <div className="rounded-[22px] border border-warning-400/35 bg-warning-500/12 p-4 text-sm text-warning-100">
+            <div className="rounded-lg border border-warning-400/35 bg-warning-500/12 p-4 text-sm text-warning-100">
               {adminSettingsWarning}
             </div>
           ) : null}
 
           {isAdminDataLoading ? (
-            <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
+            <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
               Refreshing audit activity...
             </div>
           ) : null}
@@ -71,7 +71,7 @@ export function AdminAuditLogs() {
             {filteredLogs.map((entry) => (
               <article
                 key={entry.id}
-                className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4"
+                className="rounded-lg border border-white/10 bg-white/[0.04] p-4"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-2">
@@ -88,7 +88,7 @@ export function AdminAuditLogs() {
             ))}
 
             {!isAdminDataLoading && filteredLogs.length === 0 ? (
-              <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
+              <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
                 No audit entries matched the current search.
               </div>
             ) : null}

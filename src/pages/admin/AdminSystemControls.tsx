@@ -165,7 +165,7 @@ export function AdminSystemControls() {
                   value={rateLimitInput}
                   onChange={(event) => setRateLimitInput(event.target.value)}
                   inputMode="numeric"
-                  className="h-11 flex-1 rounded-2xl border border-white/15 bg-panel-900/60 px-4 text-sm text-slate-100"
+                  className="h-11 flex-1 rounded-xl border border-white/15 bg-panel-900/60 px-4 text-sm text-slate-100"
                 />
                 <Button
                   onClick={() => void handleRateLimitSave()}
@@ -176,7 +176,7 @@ export function AdminSystemControls() {
               </div>
             </label>
 
-            <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4">
+            <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
               <p className="text-sm text-slate-400">Cache flush</p>
               <p className="mt-2 text-sm leading-6 text-slate-300">
                 Clears the client-side reverse geocode cache and signed image URL cache, then refreshes live reports and admin support data.
@@ -192,19 +192,19 @@ export function AdminSystemControls() {
             </div>
 
             {adminSettingsWarning ? (
-              <div className="rounded-[22px] border border-warning-400/35 bg-warning-500/12 p-4 text-sm text-warning-100">
+              <div className="rounded-lg border border-warning-400/35 bg-warning-500/12 p-4 text-sm text-warning-100">
                 {adminSettingsWarning}
               </div>
             ) : null}
 
             {errorMessage ? (
-              <div className="rounded-[22px] border border-danger-400/35 bg-danger-500/12 p-4 text-sm text-danger-100">
+              <div className="rounded-lg border border-danger-400/35 bg-danger-500/12 p-4 text-sm text-danger-100">
                 {errorMessage}
               </div>
             ) : null}
 
             {message ? (
-              <div className="rounded-[22px] border border-success-400/35 bg-success-500/12 p-4 text-sm text-success-100">
+              <div className="rounded-lg border border-success-400/35 bg-success-500/12 p-4 text-sm text-success-100">
                 {message}
               </div>
             ) : null}
@@ -222,29 +222,29 @@ export function AdminSystemControls() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+            <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3">
               <span className="text-slate-300">Privacy mode</span>
               <span className="font-semibold text-white">
                 {adminSettings.privacyMode ? "Masked" : "Standard"}
               </span>
             </div>
-            <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+            <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3">
               <span className="text-slate-300">Auto-confirm</span>
               <span className="font-semibold text-white">
                 {adminSettings.autoConfirm ? "Threshold enabled" : "Manual review"}
               </span>
             </div>
-            <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+            <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3">
               <span className="text-slate-300">SMS alerts</span>
               <span className="font-semibold text-white">
                 {adminSettings.smsAlerts ? "Broadcast ready" : "Disabled"}
               </span>
             </div>
-            <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+            <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3">
               <span className="text-slate-300">Rate limit</span>
               <span className="font-semibold text-white">{adminSettings.rateLimit}</span>
             </div>
-            <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+            <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3">
               <span className="text-slate-300">Submission posture</span>
               <span className="font-semibold text-white">
                 {adminSettings.lockdownMode ? "Locked down" : "Open"}

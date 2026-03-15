@@ -1,6 +1,5 @@
 import type { AppRole } from "./supabase";
 import { supabase } from "./supabase";
-import { reverseGeocode } from "./geocoding";
 import {
   DEFAULT_ADMIN_SETTINGS,
   DEFAULT_LOCATION_LABEL,
@@ -263,10 +262,10 @@ async function enrichReportRow(row: ReportRow, analysisMap: Map<string, ReportAI
     getNullableString(row.location_name) ?? getNullableString(row.location_label) ?? getNullableString(row.location);
   const lat = getNumber(row.lat) ?? 0;
   const lng = getNumber(row.lng) ?? 0;
-  const resolvedLocation =
-    locationNameFromRow || (!Number.isFinite(lat) || !Number.isFinite(lng))
-      ? null
-      : await reverseGeocode(lat, lng);
+
+  // Deferred geocoding: do NOT call reverseGeocode() inline during hydration.
+  // If the DB row has a location name, use it directly. Otherwise, use the fallback label.
+  // Batch geocoding runs as a separate background task after hydration.
 
   const analysis = analysisMap.get(id) ?? extractAnalysisFromReportRow(row);
 
@@ -279,7 +278,7 @@ async function enrichReportRow(row: ReportRow, analysisMap: Map<string, ReportAI
     description: getString(row.description) ?? "",
     lat,
     lng,
-    locationName: locationNameFromRow ?? resolvedLocation?.label ?? DEFAULT_LOCATION_LABEL,
+    locationName: locationNameFromRow ?? DEFAULT_LOCATION_LABEL,
     timestamp:
       getString(row.reported_at) ?? getString(row.created_at) ?? getString(row.updated_at) ?? new Date().toISOString(),
     status: fromDbReportStatus(getString(row.status) ?? undefined),

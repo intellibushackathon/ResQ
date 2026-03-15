@@ -4,7 +4,6 @@ import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card, CardContent } from "../components/ui/Card";
 import { formatConfidence, getConfidenceTier } from "../lib/confidence";
-import { reverseGeocode } from "../lib/geocoding";
 import { getCurrentLocation, KINGSTON_FALLBACK } from "../lib/geolocation";
 import {
   DAMAGE_TYPES,
@@ -55,7 +54,6 @@ export function SubmitReport() {
   const submissionError = useReportStore((state) => state.submissionError);
 
   const [isOnline, setIsOnline] = useState<boolean>(() => navigator.onLine);
-  const [isResolvingLocation, setIsResolvingLocation] = useState(false);
   const [recenterKey, setRecenterKey] = useState(0);
   const [fileInputKey, setFileInputKey] = useState(0);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -79,32 +77,29 @@ export function SubmitReport() {
     };
   }, []);
 
-  async function resolveLocation(nextLat: number, nextLng: number, shouldRecenter: boolean) {
+  function setLocation(nextLat: number, nextLng: number, shouldRecenter: boolean) {
     setLat(nextLat);
     setLng(nextLng);
+    setLocationName(`${nextLat.toFixed(4)}, ${nextLng.toFixed(4)}`);
     setLatestResult(null);
-    setIsResolvingLocation(true);
     if (shouldRecenter) setRecenterKey((k) => k + 1);
-    const resolved = await reverseGeocode(nextLat, nextLng);
-    setLocationName(resolved.label);
-    setIsResolvingLocation(false);
   }
 
   useEffect(() => {
     void (async () => {
       const resolved = await getCurrentLocation();
-      await resolveLocation(resolved.lat, resolved.lng, true);
+      setLocation(resolved.lat, resolved.lng, true);
     })();
   }, []);
 
   const handleLocate = async () => {
     setLocalError(null);
     const resolved = await getCurrentLocation();
-    await resolveLocation(resolved.lat, resolved.lng, true);
+    setLocation(resolved.lat, resolved.lng, true);
   };
 
-  const handleSelectLocation = async (nextLocation: { lat: number; lng: number }) => {
-    await resolveLocation(nextLocation.lat, nextLocation.lng, false);
+  const handleSelectLocation = (nextLocation: { lat: number; lng: number }) => {
+    setLocation(nextLocation.lat, nextLocation.lng, false);
   };
 
   const onPhotoChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -202,12 +197,12 @@ export function SubmitReport() {
         {/* Left column — Evidence and Location */}
         <Card className="p-6">
           <p className="section-label mb-1">Evidence and location</p>
-          <h2 className="mb-4 font-display text-2xl tracking-tight text-white">
+          <h2 className="mb-4 font-sans text-2xl tracking-tight text-white">
             Capture supporting imagery
           </h2>
 
           {/* Photo upload zone — fixed height to prevent layout shift */}
-          <label className="group flex h-56 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-white/10 bg-white/[0.02] transition-colors hover:border-brand-400/30 hover:bg-white/[0.04]">
+          <label className="group flex h-56 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-white/10 bg-white/[0.02] transition-colors hover:border-brand-400/30 hover:bg-white/[0.04]">
             {photoPreview ? (
               <img
                 src={photoPreview}
@@ -239,7 +234,7 @@ export function SubmitReport() {
           </label>
 
           {/* Location map picker */}
-          <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+          <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.04] p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <p className="section-label">GPS and map pin</p>
               <Button type="button" variant="outline" size="sm" onClick={() => void handleLocate()} disabled={isSubmitting}>
@@ -249,14 +244,17 @@ export function SubmitReport() {
             <LocationPickerMap
               mapCenter={{ lat, lng }}
               incidentLocation={{ lat, lng }}
-              onSelectLocation={(nextLocation) => void handleSelectLocation(nextLocation)}
+              onSelectLocation={(nextLocation) => handleSelectLocation(nextLocation)}
               recenterKey={recenterKey}
             />
             <p className="mt-3 text-sm text-slate-300">
-              {isResolvingLocation ? "Resolving location..." : locationName}
+              {locationName}
             </p>
             <p className="mt-1 text-xs text-slate-400">
               Lat {lat.toFixed(6)} | Lng {lng.toFixed(6)}
+            </p>
+            <p className="mt-1 text-xs text-slate-500 italic">
+              Address resolved on submit
             </p>
           </div>
         </Card>
@@ -264,7 +262,7 @@ export function SubmitReport() {
         {/* Right column — Incident Details */}
         <Card className="flex flex-col p-6">
           <p className="section-label mb-1">Incident details</p>
-          <h2 className="mb-4 font-display text-2xl tracking-tight text-white">
+          <h2 className="mb-4 font-sans text-2xl tracking-tight text-white">
             Describe the situation
           </h2>
 
@@ -303,7 +301,7 @@ export function SubmitReport() {
             </div>
 
             {/* Urgent toggle */}
-            <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5">
+            <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5">
               <div className="flex items-center gap-3">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-warning-400/30 bg-warning-500/10 text-warning-400">
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -337,14 +335,14 @@ export function SubmitReport() {
 
             {/* Error */}
             {(localError || submissionError) && (
-              <div className="rounded-2xl border border-danger-400/40 bg-danger-500/15 px-4 py-3 text-sm text-danger-100">
+              <div className="rounded-xl border border-danger-400/40 bg-danger-500/15 px-4 py-3 text-sm text-danger-100">
                 {localError || submissionError}
               </div>
             )}
 
             {/* AI Analysis — show during analyzing phase or after result */}
             {isAnalyzing && (
-              <div className="space-y-3 rounded-2xl border border-brand-400/20 bg-brand-500/5 p-4">
+              <div className="space-y-3 rounded-xl border border-brand-400/20 bg-brand-500/5 p-4">
                 <div className="flex items-center gap-2">
                   <svg className="h-4 w-4 animate-spin text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
@@ -368,7 +366,7 @@ export function SubmitReport() {
                     ? "bg-warning-500"
                     : "bg-danger-500";
               return (
-                <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                <div className="space-y-3 rounded-xl border border-white/10 bg-white/[0.04] p-4">
                   <div className="flex items-center gap-2">
                     <svg className="h-4 w-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
@@ -428,7 +426,7 @@ export function SubmitReport() {
             {/* Success */}
             {latestResult && (
               <div
-                className={`rounded-2xl border p-4 ${
+                className={`rounded-xl border p-4 ${
                   latestResult.queued
                     ? "border-warning-400/35 bg-warning-500/12"
                     : "border-success-400/35 bg-success-500/12"

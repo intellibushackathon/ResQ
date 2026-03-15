@@ -59,7 +59,7 @@ export function AdminTeam() {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           {session ? (
-            <article className="rounded-[24px] border border-brand-400/25 bg-brand-500/10 p-5">
+            <article className="rounded-lg border border-brand-400/25 bg-brand-500/10 p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-[0.22em] text-brand-200/70">Current session</p>
@@ -78,7 +78,7 @@ export function AdminTeam() {
           {OPERATIONS_TEAM.map((member) => (
             <article
               key={member.id}
-              className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5"
+              className="rounded-lg border border-white/10 bg-white/[0.04] p-5"
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>

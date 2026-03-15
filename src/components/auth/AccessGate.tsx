@@ -66,23 +66,23 @@ export function AccessGate({ minimumRole, children }: AccessGateProps) {
 
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4">
+            <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
               <p className="section-label">Current role</p>
               <p className="mt-3 text-lg font-semibold text-white">{roleDisplayLabel(currentRole)}</p>
             </div>
-            <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4">
+            <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
               <p className="section-label">Required role</p>
               <p className="mt-3 text-lg font-semibold text-white">{roleDisplayLabel(minimumRole)}</p>
             </div>
           </div>
 
-          <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4 text-sm leading-7 text-slate-300">
+          <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4 text-sm leading-7 text-slate-300">
             Sign in with a responder or admin account to continue, or return to the public reporting routes.
           </div>
 
           <Link
             to="/login"
-            className="inline-flex h-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,rgba(36,145,255,0.92),rgba(21,118,221,0.9))] px-5 text-sm font-semibold uppercase tracking-[0.18em] text-white shadow-[0_18px_32px_rgba(36,145,255,0.28)] transition-transform duration-200 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-panel-950"
+            className="inline-flex h-11 items-center justify-center rounded-xl bg-brand-500 px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-panel-950"
           >
             Go to login
           </Link>

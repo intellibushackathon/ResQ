@@ -85,7 +85,7 @@ export function IncidentMap({
     };
 
   return (
-    <div className={cn("map-shell h-72 w-full overflow-hidden rounded-[28px]", className)}>
+    <div className={cn("map-shell h-72 w-full overflow-hidden rounded-xl", className)}>
       <MapContainer center={[initialCenter.lat, initialCenter.lng]} zoom={zoom} className="h-full w-full">
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
