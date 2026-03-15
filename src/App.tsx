@@ -35,6 +35,9 @@ const AdminDashboard = lazy(() =>
 const AdminModeration = lazy(() =>
   import("./pages/admin/AdminModeration").then((module) => ({ default: module.AdminModeration })),
 );
+const ScanReport = lazy(() =>
+  import("./pages/ScanReport").then((module) => ({ default: module.ScanReport })),
+);
 
 
 function RouteFallback() {
@@ -104,6 +107,14 @@ export default function App() {
             element={
               <RouteBoundary>
                 <Login />
+              </RouteBoundary>
+            }
+          />
+          <Route
+            path="scan"
+            element={
+              <RouteBoundary>
+                <ScanReport />
               </RouteBoundary>
             }
           />

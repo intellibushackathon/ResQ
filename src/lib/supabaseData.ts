@@ -26,6 +26,8 @@ import {
   toDbReportStatus,
   toDbSeverity,
 } from "./reporting";
+import type { QRReportPayload } from "./qrSharing";
+import { payloadToAIAnalysis } from "./qrSharing";
 
 const REPORTS_TABLE = "reports";
 const REPORT_AI_TABLE = "report_ai_analyses";
@@ -772,4 +774,83 @@ export function clearSignedUrlCache(): void {
 /** Alias used by AdminSystemControls. */
 export function clearReportImageUrlCache(): void {
   clearSignedUrlCache();
+}
+
+export type PendingImageUpload = {
+  imageRefId: string;
+  imageDataUrl: string;
+  imageName: string;
+  imageType: string;
+  submittedBy: string | null;
+};
+
+/**
+ * Submit a report on behalf of another device using data decoded from a QR code.
+ * The photo_path is set to "pending:{imageRefId}" as a placeholder — the original
+ * device will upload the actual image and patch this field when it reconnects.
+ */
+export async function submitReportFromQR(payload: QRReportPayload): Promise<DisasterReport> {
+  const client = ensureSupabaseClient();
+  const analysis = payloadToAIAnalysis(payload);
+  const resolvedDamageType = resolveSubmittedDamageType(payload.damageType, analysis);
+
+  const pendingPhotoPath = payload.hasImage && payload.imageRefId ? `pending:${payload.imageRefId}` : null;
+
+  const insertPayload = {
+    submitted_by: payload.submittedBy ?? null,
+    photo_path: pendingPhotoPath,
+    damage_type: toDbDamageType(resolvedDamageType),
+    severity: toDbSeverity(analysis.severity),
+    description: payload.description.trim(),
+    lat: Number(payload.lat.toFixed(6)),
+    lng: Number(payload.lng.toFixed(6)),
+    location_name: payload.locationName || null,
+    reported_at: payload.timestamp,
+    status: toDbReportStatus("Pending Validation"),
+    department_routing: toDbDepartmentFilter(analysis.suggestedDepartment),
+  };
+
+  const { data, error } = await client.from(REPORTS_TABLE).insert(insertPayload).select("*").single();
+  if (error || !data) {
+    throw error ?? new Error("Unable to create the report record.");
+  }
+
+  const reportId = getString((data as ReportRow).id) ?? "";
+  await persistReportAnalysis(reportId, analysis);
+
+  return enrichReportRow(
+    {
+      ...(data as ReportRow),
+      location_name: payload.locationName,
+    },
+    new Map([[reportId, analysis]]),
+  );
+}
+
+/**
+ * Upload a pending image and patch the report's photo_path from "pending:{refId}" to the real path.
+ * Called when Device A reconnects after a QR-assisted submission.
+ */
+export async function patchReportPendingImage(pending: PendingImageUpload): Promise<boolean> {
+  const client = ensureSupabaseClient();
+
+  const pendingPath = `pending:${pending.imageRefId}`;
+  const { data, error } = await client
+    .from(REPORTS_TABLE)
+    .select("id")
+    .eq("photo_path", pendingPath)
+    .maybeSingle();
+
+  if (error || !data) return false;
+
+  const reportId = getString((data as ReportRow).id);
+  if (!reportId) return false;
+
+  const blob = dataUrlToBlob(pending.imageDataUrl, pending.imageType);
+  const file = new File([blob], pending.imageName, { type: pending.imageType });
+  const uploaded = await uploadReportImage(file, pending.imageName, pending.imageType, pending.submittedBy);
+
+  await client.from(REPORTS_TABLE).update({ photo_path: uploaded.path }).eq("id", reportId);
+
+  return true;
 }

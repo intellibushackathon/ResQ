@@ -75,6 +75,7 @@ export type QueuedReportDraft = {
   imageDataUrl: string | null;
   imageName: string;
   imageType: string;
+  imageRefId?: string;
   damageType: DamageTypeOption;
   description: string;
   lat: number;

@@ -19,6 +19,7 @@ export function AppLayout() {
   const sessionRole = session?.role ?? "public";
   const initializeReports = useReportStore((state) => state.initializeReports);
   const syncOfflineQueue = useReportStore((state) => state.syncOfflineQueue);
+  const uploadPendingImages = useReportStore((state) => state.uploadPendingImages);
 
   useEffect(() => {
     const updateStatus = () => setIsOnline(navigator.onLine);
@@ -41,11 +42,13 @@ export function AppLayout() {
 
   useEffect(() => {
     const handleOnline = () => {
-      void syncOfflineQueue(sessionUid ? { uid: sessionUid, role: sessionRole } : null);
+      const s = sessionUid ? { uid: sessionUid, role: sessionRole } : null;
+      void syncOfflineQueue(s);
+      void uploadPendingImages(s);
     };
     window.addEventListener("online", handleOnline);
     return () => window.removeEventListener("online", handleOnline);
-  }, [sessionRole, sessionUid, syncOfflineQueue]);
+  }, [sessionRole, sessionUid, syncOfflineQueue, uploadPendingImages]);
 
   useEffect(() => {
     setMobileNavOpen(false);
