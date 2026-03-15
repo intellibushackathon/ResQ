@@ -1,193 +1,253 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/Card";
 import { BrandMark } from "./BrandMark";
 import { getRouteMeta, adminNavItems } from "./layout-data";
 import { cn } from "../../lib/utils";
 import { roleDisplayLabel, useAuthStore } from "../../store/useAuthStore";
+import { getActiveReports, getPendingReports } from "../../lib/operations";
 import { useReportStore } from "../../store/useReportStore";
+
+/* ------------------------------------------------------------------ */
+/*  Nav icons                                                          */
+/* ------------------------------------------------------------------ */
+
+const NAV_ICONS: Record<string, string> = {
+  "/admin":
+    "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1",
+  "/admin/moderation":
+    "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
+};
+
+/* ------------------------------------------------------------------ */
+/*  Component                                                          */
+/* ------------------------------------------------------------------ */
 
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const routeMeta = getRouteMeta(location.pathname, "admin");
-  const [isOnline, setIsOnline] = useState<boolean>(() => navigator.onLine);
-  const session = useAuthStore((state) => state.session);
-  const signOut = useAuthStore((state) => state.signOut);
-  const loadAdminData = useReportStore((state) => state.loadAdminData);
-  const reports = useReportStore((state) => state.reports);
-  const isAdminDataLoading = useReportStore((state) => state.isAdminDataLoading);
+
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const session = useAuthStore((s) => s.session);
+  const authReady = useAuthStore((s) => s.isReady);
+  const initializeAuth = useAuthStore((s) => s.initializeAuth);
+  const signOut = useAuthStore((s) => s.signOut);
+  const reports = useReportStore((s) => s.reports);
+  const initializeReports = useReportStore((s) => s.initializeReports);
+
+  const activeCount = useMemo(() => getActiveReports(reports).length, [reports]);
+  const pendingCount = useMemo(() => getPendingReports(reports).length, [reports]);
+
+  // Ensure auth is initialized (admin may navigate directly to /admin)
+  useEffect(() => {
+    void initializeAuth();
+  }, [initializeAuth]);
+
+  const sessionUid = session?.uid ?? null;
+  const sessionRole = session?.role ?? "public";
+
+  // Load reports + admin data once auth is ready
+  useEffect(() => {
+    if (!authReady) return;
+    void initializeReports(
+      sessionUid ? { uid: sessionUid, role: sessionRole } : null,
+    );
+  }, [authReady, initializeReports, sessionUid, sessionRole]);
 
   useEffect(() => {
-    const updateStatus = () => setIsOnline(navigator.onLine);
-    window.addEventListener("online", updateStatus);
-    window.addEventListener("offline", updateStatus);
-    return () => {
-      window.removeEventListener("online", updateStatus);
-      window.removeEventListener("offline", updateStatus);
-    };
-  }, []);
-
-  useEffect(() => {
-    void loadAdminData();
-  }, [loadAdminData]);
+    setMobileOpen(false);
+  }, [location.pathname]);
 
   async function handleSignOut() {
     await signOut();
     navigate("/login", { replace: true });
   }
 
-  return (
-    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,91,115,0.14),transparent_28%),radial-gradient(circle_at_top_right,rgba(36,145,255,0.14),transparent_32%),linear-gradient(180deg,#07101d_0%,#081423_45%,#050c16_100%)] px-4 py-4 sm:px-6 sm:py-6">
-      <div className="mx-auto grid max-w-[1500px] gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-        <aside className="glass-panel rounded-[32px] border border-danger-400/10 p-5 shadow-[0_28px_70px_rgba(0,0,0,0.34)]">
-          <div className="flex justify-center">
-            <BrandMark className="h-auto w-[240px] max-w-full drop-shadow-[0_10px_30px_rgba(36,145,255,0.16)]" />
-          </div>
-          <p className="mt-3 text-xs uppercase tracking-[0.26em] text-danger-100/75">Administrative shell</p>
+  /* ---- shared sidebar content ---- */
 
-          <Card className="mt-6 border-danger-400/15 bg-danger-500/8 p-4">
-            <CardHeader className="mb-3 gap-1">
-              <Badge variant="danger" className="w-fit">
-                Elevated context
-              </Badge>
-              <CardTitle className="text-lg">Operations posture</CardTitle>
-              <CardDescription>
-                Separate visual tone for command, moderation, and system control routes.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                <span className="text-slate-300">Total reports</span>
-                <span className="font-semibold text-white">{reports.length}</span>
-              </div>
-              <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                <span className="text-slate-300">Admin data</span>
-                <span className="font-semibold text-white">
-                  {isAdminDataLoading ? "Loading..." : "Ready"}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+  function SidebarContent() {
+    return (
+      <>
+        {/* Brand + label */}
+        <div className="flex items-center gap-3 px-1">
+          <BrandMark className="h-auto w-[100px] shrink-0 drop-shadow-[0_4px_12px_rgba(36,145,255,0.15)]" />
+          <Badge variant="danger" className="text-[9px]">Admin</Badge>
+        </div>
 
-          <nav className="mt-6 space-y-2">
-            {adminNavItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  cn(
-                    "block rounded-[22px] border px-4 py-3 transition-all duration-200",
-                    isActive
-                      ? "border-danger-400/30 bg-danger-500/10 shadow-[0_16px_34px_rgba(255,91,115,0.12)]"
-                      : "border-white/8 bg-white/[0.03] hover:border-white/15 hover:bg-white/[0.06]",
-                  )
-                }
+        {/* Navigation */}
+        <nav className="mt-6 space-y-0.5">
+          {adminNavItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === "/admin"}
+              className={({ isActive }) =>
+                cn(
+                  "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
+                  isActive
+                    ? "border border-danger-400/20 bg-danger-500/10 text-white"
+                    : "border border-transparent text-slate-400 hover:bg-white/[0.04] hover:text-slate-200",
+                )
+              }
+            >
+              <svg
+                className="h-[18px] w-[18px] shrink-0 opacity-60 group-hover:opacity-90"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
               >
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="font-semibold text-white">{item.label}</span>
-                    <span className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
-                      {item.shortLabel}
-                    </span>
-                  </div>
-                  <p className="text-sm leading-6 text-slate-400">{item.description}</p>
-                </div>
-              </NavLink>
-            ))}
-          </nav>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d={NAV_ICONS[item.to] ?? "M4 6h16M4 12h16M4 18h16"}
+                />
+              </svg>
+              <span className="truncate">{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
 
-          <Card className="mt-6 p-4">
-            <CardHeader className="mb-3 gap-1">
-              <Badge variant="outline" className="w-fit">
-                Admin status
-              </Badge>
-              <CardTitle className="text-lg">{session?.displayName ?? "Admin session"}</CardTitle>
-              <CardDescription>
-                {session
-                  ? `${roleDisplayLabel(session.role)} access on the Supabase backend.`
-                  : "Administrative access is active for this route tree."}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm text-slate-300">
-              <div className="flex items-center justify-between">
-                <span>Role</span>
-                <span className="font-semibold text-white">{roleDisplayLabel(session?.role ?? "admin")}</span>
+        {/* Quick stats */}
+        <div className="mt-6 space-y-2">
+          <p className="px-1 text-[10px] uppercase tracking-widest text-slate-500">System Status</p>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-2">
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-2 w-2 rounded-full bg-success-400" />
+                <span className="text-xs text-slate-400">Active Incidents</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span>Backend</span>
-                <span className="font-semibold text-white">Supabase</span>
+              <span className="text-xs font-semibold tabular-nums text-white">{activeCount}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-2">
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-2 w-2 rounded-full bg-warning-400" />
+                <span className="text-xs text-slate-400">Pending Review</span>
               </div>
-              <Button variant="ghost" className="w-full justify-center border border-white/10" onClick={() => void handleSignOut()}>
-                Sign out
-              </Button>
-            </CardContent>
-          </Card>
-        </aside>
-
-        <main className="min-w-0">
-          <div className="glass-panel min-h-[calc(100vh-2rem)] rounded-[36px] border border-white/10 px-5 py-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:px-8 sm:py-8">
-            <header className="mb-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-              <Card className="overflow-hidden border-danger-400/12 bg-[linear-gradient(135deg,rgba(255,91,115,0.14),rgba(9,24,43,0.8)_45%,rgba(36,145,255,0.08))] p-0">
-                <div className="p-6 sm:p-8">
-                  <div className="mb-5 flex flex-wrap items-center gap-3">
-                    <Badge variant="danger">{routeMeta.category}</Badge>
-                    <Badge variant={isOnline ? "success" : "warning"}>
-                      {isOnline ? "Network stable" : "Offline mode"}
-                    </Badge>
-                  </div>
-                  <p className="section-label text-danger-100/60">{routeMeta.eyebrow}</p>
-                  <h1 className="mt-3 font-display text-4xl tracking-[-0.05em] text-white sm:text-5xl">
-                    {routeMeta.title}
-                  </h1>
-                  <p className="mt-4 max-w-3xl text-base leading-7 text-slate-200 sm:text-lg">
-                    {routeMeta.subtitle}
-                  </p>
-                </div>
-              </Card>
-
-              <Card className="p-5">
-                <CardHeader className="mb-4 gap-2">
-                  <Badge variant="outline" className="w-fit">
-                    Operational strip
-                  </Badge>
-                  <CardTitle>Command indicators</CardTitle>
-                  <CardDescription>Distinct shell telemetry for operations-facing routes.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                    <span className="text-slate-300">Network</span>
-                    <span className="font-semibold text-white">
-                      {isOnline ? "Stable" : "Offline"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                    <span className="text-slate-300">Reports loaded</span>
-                    <span className="font-semibold text-white">{reports.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                    <span className="text-slate-300">Shell status</span>
-                    <span className="font-semibold text-white">{routeMeta.status}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </header>
-
-            <section className="space-y-6">
-              <Outlet />
-            </section>
-
-            <footer className="mt-8 flex flex-col gap-3 rounded-[28px] border border-danger-400/10 bg-danger-500/[0.05] px-5 py-4 text-sm text-slate-300 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
-                <span className="h-2.5 w-2.5 rounded-full bg-danger-500 shadow-[0_0_18px_rgba(255,91,115,0.75)]" />
-                <span>Admin shell remains isolated from the public experience and protected by role gating.</span>
+              <span className="text-xs font-semibold tabular-nums text-warning-300">{pendingCount}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-2">
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-2 w-2 rounded-full bg-brand-400 animate-pulse" />
+                <span className="text-xs text-slate-400">AI Engine</span>
               </div>
-              <span className="text-slate-400">Operations layout | Protected route tree</span>
-            </footer>
+              <span className="text-xs font-semibold text-success-300">Online</span>
+            </div>
           </div>
-        </main>
+        </div>
+
+        {/* Session + sign out */}
+        <div className="mt-auto pt-6">
+          <div className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-danger-500/15 text-xs font-bold text-danger-300">
+              {(session?.displayName ?? "A").charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-white">
+                {session?.displayName ?? "Admin"}
+              </p>
+              <p className="text-[11px] text-slate-500">
+                {roleDisplayLabel(session?.role ?? "admin")}
+              </p>
+            </div>
+            <button
+              onClick={() => void handleSignOut()}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-white/[0.06] hover:text-slate-300"
+              title="Sign out"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  /* ---- render ---- */
+
+  return (
+    <div className="relative min-h-screen bg-[radial-gradient(ellipse_at_top_left,rgba(255,91,115,0.06),transparent_50%),linear-gradient(180deg,#07101d_0%,#081423_45%,#050c16_100%)]">
+      {/* Desktop sidebar */}
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[240px] flex-col border-r border-white/[0.06] bg-[#070f1b]/90 px-4 py-5 backdrop-blur-xl xl:flex">
+        <SidebarContent />
+      </aside>
+
+      {/* Mobile top bar */}
+      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-white/[0.06] bg-[#070f1b]/90 px-4 backdrop-blur-xl xl:hidden">
+        <div className="flex items-center gap-3">
+          <BrandMark className="h-auto w-[80px] shrink-0" />
+          <Badge variant="danger" className="text-[9px]">Admin</Badge>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9"
+          onClick={() => setMobileOpen(true)}
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </Button>
+      </header>
+
+      {/* Mobile nav drawer */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm xl:hidden"
+              onClick={() => setMobileOpen(false)}
+            />
+            <motion.aside
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", stiffness: 400, damping: 34 }}
+              className="fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-white/[0.06] bg-[#070f1b] px-4 py-5 xl:hidden"
+            >
+              <div className="mb-4 flex items-center justify-end">
+                <button
+                  onClick={() => setMobileOpen(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-white/[0.06] hover:text-white"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <SidebarContent />
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Main content */}
+      <div className="xl:pl-[240px]">
+        <div className="mx-auto max-w-[1100px] px-4 py-5 sm:px-6 sm:py-6">
+          {/* Page header */}
+          <header className="mb-6">
+            <h1 className="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
+              {routeMeta.title}
+            </h1>
+            <p className="mt-1 max-w-xl text-sm text-slate-400">{routeMeta.subtitle}</p>
+          </header>
+
+          <Outlet />
+
+          <footer className="mt-10 border-t border-white/[0.04] pt-4 text-[11px] text-slate-600">
+            Protected admin route
+          </footer>
+        </div>
       </div>
     </div>
   );

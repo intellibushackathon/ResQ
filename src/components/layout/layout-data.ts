@@ -46,7 +46,7 @@ export const publicNavItems: NavItem[] = [
 export const adminNavItems: NavItem[] = [
   {
     to: "/admin",
-    label: "Operations Overview",
+    label: "Overview",
     shortLabel: "Overview",
     description: "Command center summary for leaders and coordinators.",
   },
@@ -54,31 +54,7 @@ export const adminNavItems: NavItem[] = [
     to: "/admin/moderation",
     label: "Moderation",
     shortLabel: "Moderation",
-    description: "Triage queue tuning, verification, and escalation review.",
-  },
-  {
-    to: "/admin/audit-logs",
-    label: "Audit Logs",
-    shortLabel: "Audit logs",
-    description: "Review operator actions, routing, and system events.",
-  },
-  {
-    to: "/admin/system-controls",
-    label: "System Controls",
-    shortLabel: "Controls",
-    description: "Monitor operational safeguards and critical toggles.",
-  },
-  {
-    to: "/admin/team",
-    label: "Team",
-    shortLabel: "Team",
-    description: "Inspect staffing posture and duty readiness.",
-  },
-  {
-    to: "/admin/settings",
-    label: "Settings",
-    shortLabel: "Settings",
-    description: "Configure integrations, policy defaults, and thresholds.",
+    description: "Verify and route incoming incident reports.",
   },
 ];
 
@@ -124,55 +100,17 @@ export const publicRouteMeta: RouteMeta[] = [
 export const adminRouteMeta: RouteMeta[] = [
   {
     path: "/admin",
-    title: "Operations command shell",
-    subtitle:
-      "A distinct operations-focused shell for supervisors and incident leads, tuned for monitoring platform health, queue pressure, and readiness.",
-    eyebrow: "Admin application tree",
+    title: "Operations overview",
+    subtitle: "Monitor incident volume, triage status, and dispatch field teams.",
+    eyebrow: "Admin",
     category: "Operations",
     status: "Protected operations route",
   },
   {
     path: "/admin/moderation",
-    title: "Moderation control room",
-    subtitle:
-      "A high-signal review space for verification queues, severity overrides, and triage routing without introducing the workflow logic yet.",
-    eyebrow: "Admin moderation",
-    category: "Operations",
-    status: "Protected operations route",
-  },
-  {
-    path: "/admin/audit-logs",
-    title: "Operational audit logs",
-    subtitle:
-      "A structured shell for action history, compliance review, and operator traceability across the administration workspace.",
-    eyebrow: "Admin audit logs",
-    category: "Operations",
-    status: "Protected operations route",
-  },
-  {
-    path: "/admin/system-controls",
-    title: "System safeguards and controls",
-    subtitle:
-      "A distinct control surface for feature toggles, policy states, and operational safeguards with room for future critical actions.",
-    eyebrow: "Admin system controls",
-    category: "Operations",
-    status: "Protected operations route",
-  },
-  {
-    path: "/admin/team",
-    title: "Team readiness board",
-    subtitle:
-      "A staffing and readiness shell for duty rotations, team status, and coordination signals across emergency operations.",
-    eyebrow: "Admin team",
-    category: "Operations",
-    status: "Protected operations route",
-  },
-  {
-    path: "/admin/settings",
-    title: "Administrative settings shell",
-    subtitle:
-      "A polished administration settings route for platform-level configuration, thresholds, and integration setup.",
-    eyebrow: "Admin settings",
+    title: "Moderation",
+    subtitle: "Review pending reports, override AI classifications, and verify incidents.",
+    eyebrow: "Admin",
     category: "Operations",
     status: "Protected operations route",
   },

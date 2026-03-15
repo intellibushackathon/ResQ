@@ -23,11 +23,11 @@ type IncidentMapProps = {
   className?: string;
 };
 
-const severityClassMap: Record<Severity, string> = {
-  Critical: "critical",
-  High: "high",
-  Medium: "medium",
-  Low: "low",
+const SEVERITY_COLORS: Record<Severity, { bg: string; shadow: string }> = {
+  Critical: { bg: "#ff5b73", shadow: "rgba(255,91,115,0.18)" },
+  High:     { bg: "#ffb020", shadow: "rgba(255,176,32,0.18)" },
+  Medium:   { bg: "#2491ff", shadow: "rgba(36,145,255,0.18)" },
+  Low:      { bg: "#94a3b8", shadow: "rgba(148,163,184,0.18)" },
 };
 
 const iconCache = new Map<string, DivIcon>();
@@ -39,9 +39,12 @@ function getIncidentMarkerIcon(severity: Severity, isSelected: boolean) {
     return cached;
   }
 
+  const { bg, shadow } = SEVERITY_COLORS[severity];
+  const size = isSelected ? "transform:scale(1.15);" : "";
+
   const icon = L.divIcon({
     className: "",
-    html: `<span class="incident-map__marker incident-map__marker--${severityClassMap[severity]}${isSelected ? " incident-map__marker--selected" : ""}"></span>`,
+    html: `<span style="display:block;height:18px;width:18px;border-radius:999px;border:2px solid rgba(248,250,252,0.95);background:${bg};box-shadow:0 0 0 6px ${shadow};${size}"></span>`,
     iconSize: [24, 24],
     iconAnchor: [12, 12],
   });

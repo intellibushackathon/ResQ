@@ -35,20 +35,7 @@ const AdminDashboard = lazy(() =>
 const AdminModeration = lazy(() =>
   import("./pages/admin/AdminModeration").then((module) => ({ default: module.AdminModeration })),
 );
-const AdminAuditLogs = lazy(() =>
-  import("./pages/admin/AdminAuditLogs").then((module) => ({ default: module.AdminAuditLogs })),
-);
-const AdminSystemControls = lazy(() =>
-  import("./pages/admin/AdminSystemControls").then((module) => ({
-    default: module.AdminSystemControls,
-  })),
-);
-const AdminTeam = lazy(() =>
-  import("./pages/admin/AdminTeam").then((module) => ({ default: module.AdminTeam })),
-);
-const AdminSettings = lazy(() =>
-  import("./pages/admin/AdminSettings").then((module) => ({ default: module.AdminSettings })),
-);
+
 
 function RouteFallback() {
   return (
@@ -155,38 +142,6 @@ export default function App() {
             element={
               <RouteBoundary>
                 <AdminModeration />
-              </RouteBoundary>
-            }
-          />
-          <Route
-            path="audit-logs"
-            element={
-              <RouteBoundary>
-                <AdminAuditLogs />
-              </RouteBoundary>
-            }
-          />
-          <Route
-            path="system-controls"
-            element={
-              <RouteBoundary>
-                <AdminSystemControls />
-              </RouteBoundary>
-            }
-          />
-          <Route
-            path="team"
-            element={
-              <RouteBoundary>
-                <AdminTeam />
-              </RouteBoundary>
-            }
-          />
-          <Route
-            path="settings"
-            element={
-              <RouteBoundary>
-                <AdminSettings />
               </RouteBoundary>
             }
           />
