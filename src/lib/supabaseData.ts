@@ -724,3 +724,12 @@ export async function updateSystemSetting(
 export function mergeLiveAndQueuedReports(liveReports: DisasterReport[], drafts: QueuedReportDraft[]) {
   return sortReportsByPriority([...drafts.map(createOfflineReportFromDraft), ...liveReports]);
 }
+
+export function clearSignedUrlCache(): void {
+  signedUrlCache.clear();
+}
+
+/** Alias used by AdminSystemControls. */
+export function clearReportImageUrlCache(): void {
+  clearSignedUrlCache();
+}
