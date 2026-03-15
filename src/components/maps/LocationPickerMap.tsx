@@ -12,7 +12,7 @@ type LocationPickerMapProps = {
   incidentLocation?: {
     lat: number;
     lng: number;
-  };
+  } | null;
   onSelectLocation: (location: { lat: number; lng: number }) => void;
   recenterKey?: number;
   className?: string;
@@ -58,7 +58,7 @@ function ClickToPin({
 
 export function LocationPickerMap({
   mapCenter = KINGSTON_FALLBACK,
-  incidentLocation = mapCenter,
+  incidentLocation = null,
   onSelectLocation,
   recenterKey,
   className,
@@ -72,7 +72,7 @@ export function LocationPickerMap({
         />
         <RecenterOnTarget center={mapCenter} recenterKey={recenterKey} />
         <ClickToPin onSelectLocation={onSelectLocation} />
-        <Marker position={[incidentLocation.lat, incidentLocation.lng]} icon={locationMarkerIcon} />
+        {incidentLocation && <Marker position={[incidentLocation.lat, incidentLocation.lng]} icon={locationMarkerIcon} />}
       </MapContainer>
     </div>
   );

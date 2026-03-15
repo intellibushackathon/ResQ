@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
-import { Navigation } from "./Navigation";
-import { getRouteMeta, publicNavItems } from "./layout-data";
+import { AccountMenu, Navigation } from "./Navigation";
+import { BrandMark } from "./BrandMark";
+import { publicNavItems } from "./layout-data";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useReportStore } from "../../store/useReportStore";
 
 export function AppLayout() {
   const location = useLocation();
-  const routeMeta = getRouteMeta(location.pathname, "public");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [isOnline, setIsOnline] = useState<boolean>(() => navigator.onLine);
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
@@ -19,16 +19,11 @@ export function AppLayout() {
   const sessionRole = session?.role ?? "public";
   const initializeReports = useReportStore((state) => state.initializeReports);
   const syncOfflineQueue = useReportStore((state) => state.syncOfflineQueue);
-  const queueCount = useReportStore((state) => state.offlineQueue.length);
-  const isSyncingOfflineQueue = useReportStore((state) => state.isSyncingOfflineQueue);
-  const syncStatusMessage = useReportStore((state) => state.syncStatusMessage);
 
   useEffect(() => {
     const updateStatus = () => setIsOnline(navigator.onLine);
-
     window.addEventListener("online", updateStatus);
     window.addEventListener("offline", updateStatus);
-
     return () => {
       window.removeEventListener("online", updateStatus);
       window.removeEventListener("offline", updateStatus);
@@ -40,10 +35,7 @@ export function AppLayout() {
   }, [initializeAuth]);
 
   useEffect(() => {
-    if (!authReady) {
-      return;
-    }
-
+    if (!authReady) return;
     void initializeReports(sessionUid ? { uid: sessionUid, role: sessionRole } : null);
   }, [authReady, initializeReports, sessionRole, sessionUid]);
 
@@ -51,11 +43,8 @@ export function AppLayout() {
     const handleOnline = () => {
       void syncOfflineQueue(sessionUid ? { uid: sessionUid, role: sessionRole } : null);
     };
-
     window.addEventListener("online", handleOnline);
-    return () => {
-      window.removeEventListener("online", handleOnline);
-    };
+    return () => window.removeEventListener("online", handleOnline);
   }, [sessionRole, sessionUid, syncOfflineQueue]);
 
   useEffect(() => {
@@ -63,51 +52,44 @@ export function AppLayout() {
   }, [location.pathname]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden px-4 py-4 sm:px-6 sm:py-6">
-      <div className="mx-auto flex max-w-[1480px] gap-6">
-        <Navigation
-          items={publicNavItems}
-          open={mobileNavOpen}
-          onToggle={() => setMobileNavOpen((value) => !value)}
-        />
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Top navbar */}
+      <header className="sticky top-0 z-40 border-b border-white/8 bg-panel-950/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-[1480px] items-center justify-between gap-4 px-4 sm:px-6">
+          {/* Left: brand */}
+          <BrandMark className="h-auto w-[110px] shrink-0 drop-shadow-[0_4px_12px_rgba(36,145,255,0.15)]" />
 
-        <main className="min-w-0 flex-1">
-          <div className="glass-panel min-h-[calc(100vh-2rem)] rounded-[36px] border border-white/10 px-5 py-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:px-8 sm:py-8">
-            <header className="mb-8">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="section-label">{routeMeta.eyebrow}</p>
-                  <h1 className="mt-2 font-display text-4xl tracking-[-0.05em] text-white sm:text-5xl">
-                    {routeMeta.title}
-                  </h1>
-                  <p className="mt-3 max-w-2xl text-base leading-7 text-slate-300">
-                    {routeMeta.subtitle}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <Badge variant={isOnline ? "success" : "warning"}>
-                    <span className="flex items-center gap-1.5">
-                      <span className={`inline-block h-2 w-2 rounded-full ${isOnline ? "bg-success-400" : "bg-warning-400"}`} />
-                      {isOnline ? "Online" : "Offline"}
-                    </span>
-                  </Badge>
-                  <Button variant="outline" className="lg:hidden" onClick={() => setMobileNavOpen(true)}>
-                    Menu
-                  </Button>
-                </div>
-              </div>
-            </header>
+          {/* Center: nav links (desktop) */}
+          <Navigation
+            items={publicNavItems}
+            open={mobileNavOpen}
+            onToggle={() => setMobileNavOpen((v) => !v)}
+          />
 
-            <section className="space-y-6">
-              <Outlet />
-            </section>
-
-            <footer className="mt-8 text-center text-xs text-slate-500">
-              ResQ &mdash; Disaster Intelligence
-            </footer>
+          {/* Right: status + account + mobile toggle */}
+          <div className="flex items-center gap-2">
+            <Badge variant={isOnline ? "success" : "warning"} className="hidden sm:flex">
+              <span className="flex items-center gap-1.5">
+                <span className={`inline-block h-1.5 w-1.5 rounded-full ${isOnline ? "bg-success-400" : "bg-warning-400"}`} />
+                {isOnline ? "Online" : "Offline"}
+              </span>
+            </Badge>
+            <div className="hidden lg:block">
+              <AccountMenu />
+            </div>
+            <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileNavOpen(true)}>
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+            </Button>
           </div>
-        </main>
-      </div>
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="mx-auto max-w-[960px] px-4 py-6 sm:px-6 sm:py-8">
+        <Outlet />
+      </main>
     </div>
   );
 }

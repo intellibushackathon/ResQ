@@ -16,7 +16,6 @@ const AppLayout = lazy(() =>
 const AdminLayout = lazy(() =>
   import("./components/layout/AdminLayout").then((module) => ({ default: module.AdminLayout })),
 );
-const Alerts = lazy(() => import("./pages/Alerts").then((module) => ({ default: module.Alerts })));
 const Login = lazy(() => import("./pages/Login").then((module) => ({ default: module.Login })));
 const MyReports = lazy(() =>
   import("./pages/MyReports").then((module) => ({ default: module.MyReports })),
@@ -102,14 +101,6 @@ export default function App() {
             element={
               <RouteBoundary>
                 <MyReports />
-              </RouteBoundary>
-            }
-          />
-          <Route
-            path="alerts"
-            element={
-              <RouteBoundary>
-                <Alerts />
               </RouteBoundary>
             }
           />

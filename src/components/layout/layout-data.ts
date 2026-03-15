@@ -30,22 +30,10 @@ export const publicNavItems: NavItem[] = [
     description: "Track citizen submissions and response progress.",
   },
   {
-    to: "/alerts",
-    label: "Alerts",
-    shortLabel: "Alerts",
-    description: "Monitor live warnings and urgent public advisories.",
-  },
-  {
     to: "/safe-zones",
     label: "Safe Zones",
     shortLabel: "Safe zones",
     description: "Surface shelters, assembly points, and fallback locations.",
-  },
-  {
-    to: "/login",
-    label: "Login",
-    shortLabel: "Login",
-    description: "Secure account access and responder sign-in flows.",
   },
   {
     to: "/dashboard",
@@ -114,15 +102,6 @@ export const publicRouteMeta: RouteMeta[] = [
     status: "Report history available",
   },
   {
-    path: "/alerts",
-    title: "Critical alerts center",
-    subtitle:
-      "An intentional alert-reading environment for residents and field teams to scan urgent notices, priority zones, and public safety directives.",
-    eyebrow: "Public alerts",
-    category: "Public alerts",
-    status: "Critical feed active",
-  },
-  {
     path: "/safe-zones",
     title: "Safe zone directory",
     subtitle:
@@ -130,15 +109,6 @@ export const publicRouteMeta: RouteMeta[] = [
     eyebrow: "Public safety",
     category: "Public safety",
     status: "Shelter directory active",
-  },
-  {
-    path: "/login",
-    title: "Secure access entry",
-    subtitle:
-      "A composed account entry surface for citizens, responders, and operators across the live Supabase-backed session flow.",
-    eyebrow: "Access control",
-    category: "Access control",
-    status: "Authentication active",
   },
   {
     path: "/dashboard",

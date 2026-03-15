@@ -268,7 +268,17 @@ async function enrichReportRow(row: ReportRow, analysisMap: Map<string, ReportAI
       ? null
       : await reverseGeocode(lat, lng);
 
-  const analysis = analysisMap.get(id) ?? extractAnalysisFromReportRow(row);
+  const rawAnalysis = analysisMap.get(id) ?? extractAnalysisFromReportRow(row);
+
+  // damage_type and severity live on the reports table, not report_ai_analyses.
+  // Patch them back onto the analysis object so report.ai reflects the true values.
+  const analysis = rawAnalysis
+    ? {
+        ...rawAnalysis,
+        damageType: fromDbDamageType(getString(row.damage_type) ?? undefined) ?? rawAnalysis.damageType,
+        severity: fromDbSeverity(getString(row.severity) ?? undefined) ?? rawAnalysis.severity,
+      }
+    : undefined;
 
   return {
     id,
