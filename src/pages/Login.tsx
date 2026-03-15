@@ -101,7 +101,7 @@ export function Login() {
               {isSupabaseConfigured ? "Supabase mode" : "Configuration required"}
             </Badge>
           </div>
-          <CardTitle className="text-3xl sm:text-[2rem]">Login or create your account</CardTitle>
+          <CardTitle className="text-xl">Login or create your account</CardTitle>
           <CardDescription className="max-w-3xl text-base leading-7">
             Citizens, responders, and operators share one access surface, with role-based routing after sign-in.
           </CardDescription>
@@ -127,7 +127,7 @@ export function Login() {
                 <input
                   value={fullName}
                   onChange={(event) => setFullName(event.target.value)}
-                  className="w-full rounded-2xl border border-white/15 bg-panel-900/70 px-3 py-2 text-sm text-slate-100"
+                  className="w-full rounded-xl border border-white/15 bg-panel-900/70 px-3 py-2 text-sm text-slate-100"
                   placeholder="Your full name"
                 />
               </label>
@@ -139,7 +139,7 @@ export function Login() {
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="w-full rounded-2xl border border-white/15 bg-panel-900/70 px-3 py-2 text-sm text-slate-100"
+                className="w-full rounded-xl border border-white/15 bg-panel-900/70 px-3 py-2 text-sm text-slate-100"
               />
             </label>
 
@@ -149,14 +149,14 @@ export function Login() {
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="w-full rounded-2xl border border-white/15 bg-panel-900/70 px-3 py-2 text-sm text-slate-100"
+                className="w-full rounded-xl border border-white/15 bg-panel-900/70 px-3 py-2 text-sm text-slate-100"
               />
             </label>
 
             {errorMessage ? (
               <div
                 role="alert"
-                className="rounded-2xl border border-danger-400/35 bg-danger-500/12 px-4 py-3 text-sm text-danger-100"
+                className="rounded-xl border border-danger-400/35 bg-danger-500/12 px-4 py-3 text-sm text-danger-100"
               >
                 {errorMessage}
               </div>
@@ -182,14 +182,14 @@ export function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+          <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
             <p className="font-semibold text-white">Sign-up fields</p>
             <p className="mt-1 text-slate-300">Full name, email, and password.</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-slate-300">
+          <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4 text-slate-300">
             Successful sign-up creates a public profile by default. Staff and admin elevation require profile updates.
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-slate-300">
+          <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4 text-slate-300">
             Public routes remain available without signing in. Use <strong className="text-slate-100">Continue as guest</strong> to access the citizen flow immediately — no account needed. Protected responder and admin routes require a signed-in session with the correct role.
           </div>
         </CardContent>

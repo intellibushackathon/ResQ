@@ -16,6 +16,9 @@ const AppLayout = lazy(() =>
 const AdminLayout = lazy(() =>
   import("./components/layout/AdminLayout").then((module) => ({ default: module.AdminLayout })),
 );
+const ResponderLayout = lazy(() =>
+  import("./components/layout/ResponderLayout").then((module) => ({ default: module.ResponderLayout })),
+);
 const Alerts = lazy(() => import("./pages/Alerts").then((module) => ({ default: module.Alerts })));
 const Login = lazy(() => import("./pages/Login").then((module) => ({ default: module.Login })));
 const MyReports = lazy(() =>
@@ -49,6 +52,15 @@ const AdminTeam = lazy(() =>
 );
 const AdminSettings = lazy(() =>
   import("./pages/admin/AdminSettings").then((module) => ({ default: module.AdminSettings })),
+);
+const AdminIncidentMap = lazy(() =>
+  import("./pages/admin/AdminIncidentMap").then((module) => ({ default: module.AdminIncidentMap })),
+);
+const AdminCollaboration = lazy(() =>
+  import("./pages/admin/AdminCollaboration").then((module) => ({ default: module.AdminCollaboration })),
+);
+const AdminResources = lazy(() =>
+  import("./pages/admin/AdminResources").then((module) => ({ default: module.AdminResources })),
 );
 
 function RouteFallback() {
@@ -129,14 +141,24 @@ export default function App() {
               </RouteBoundary>
             }
           />
+        </Route>
+
+        <Route
+          path="/dashboard"
+          element={
+            <AccessGate minimumRole="staff">
+              <RouteBoundary>
+                <ResponderLayout />
+              </RouteBoundary>
+            </AccessGate>
+          }
+        >
           <Route
-            path="dashboard"
+            index
             element={
-              <AccessGate minimumRole="staff">
-                <RouteBoundary>
-                  <Dashboard />
-                </RouteBoundary>
-              </AccessGate>
+              <RouteBoundary>
+                <Dashboard />
+              </RouteBoundary>
             }
           />
         </Route>
@@ -196,6 +218,30 @@ export default function App() {
             element={
               <RouteBoundary>
                 <AdminSettings />
+              </RouteBoundary>
+            }
+          />
+          <Route
+            path="incident-map"
+            element={
+              <RouteBoundary>
+                <AdminIncidentMap />
+              </RouteBoundary>
+            }
+          />
+          <Route
+            path="collaboration"
+            element={
+              <RouteBoundary>
+                <AdminCollaboration />
+              </RouteBoundary>
+            }
+          />
+          <Route
+            path="resources"
+            element={
+              <RouteBoundary>
+                <AdminResources />
               </RouteBoundary>
             }
           />

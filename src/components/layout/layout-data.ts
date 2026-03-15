@@ -92,6 +92,24 @@ export const adminNavItems: NavItem[] = [
     shortLabel: "Settings",
     description: "Configure integrations, policy defaults, and thresholds.",
   },
+  {
+    to: "/admin/incident-map",
+    label: "Incident Map",
+    shortLabel: "Map",
+    description: "Spatial heatmap view of incident distribution and severity.",
+  },
+  {
+    to: "/admin/collaboration",
+    label: "Collaboration",
+    shortLabel: "Collab",
+    description: "Cross-agency visibility and department coordination.",
+  },
+  {
+    to: "/admin/resources",
+    label: "Resources",
+    shortLabel: "Resources",
+    description: "Responder allocation, workload, and progression tracking.",
+  },
 ];
 
 export const publicRouteMeta: RouteMeta[] = [
@@ -203,6 +221,33 @@ export const adminRouteMeta: RouteMeta[] = [
     subtitle:
       "A polished administration settings route for platform-level configuration, thresholds, and integration setup.",
     eyebrow: "Admin settings",
+    category: "Operations",
+    status: "Protected operations route",
+  },
+  {
+    path: "/admin/incident-map",
+    title: "Incident distribution heatmap",
+    subtitle:
+      "Spatial visualization of incident density, severity concentration, and geographic distribution patterns across reporting zones.",
+    eyebrow: "Admin spatial view",
+    category: "Operations",
+    status: "Protected operations route",
+  },
+  {
+    path: "/admin/collaboration",
+    title: "Cross-agency collaboration",
+    subtitle:
+      "Organization-to-organization visibility with department-level incident grouping and cross-agency coordination support.",
+    eyebrow: "Admin collaboration",
+    category: "Operations",
+    status: "Protected operations route",
+  },
+  {
+    path: "/admin/resources",
+    title: "Resource allocation dashboard",
+    subtitle:
+      "Human resource allocation, responder workload distribution, and end-to-end incident progression tracking.",
+    eyebrow: "Admin resources",
     category: "Operations",
     status: "Protected operations route",
   },

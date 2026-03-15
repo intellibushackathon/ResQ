@@ -144,7 +144,7 @@ export function AdminModeration() {
           </CardHeader>
           <CardContent className="space-y-3">
             {isInitializing ? (
-              <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
+              <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
                 Refreshing moderation queue...
               </div>
             ) : null}
@@ -157,7 +157,7 @@ export function AdminModeration() {
                   key={report.id}
                   type="button"
                   onClick={() => setSelectedId(report.id)}
-                  className={`w-full rounded-[24px] border p-4 text-left transition ${
+                  className={`w-full rounded-lg border p-4 text-left transition ${
                     selected?.id === report.id
                       ? "border-brand-400/35 bg-brand-500/12"
                       : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]"
@@ -187,7 +187,7 @@ export function AdminModeration() {
             })}
 
             {pendingQueue.length === 0 ? (
-              <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
+              <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
                 No pending validation reports remain in the moderation queue.
               </div>
             ) : null}
@@ -208,7 +208,7 @@ export function AdminModeration() {
           <CardContent className="space-y-4">
             {selected ? (
               <>
-                <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4">
+                <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{selected.id}</p>
@@ -227,7 +227,7 @@ export function AdminModeration() {
                 </div>
 
                 {selected.photoUrl ? (
-                  <div className="overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.04]">
+                  <div className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.04]">
                     <img
                       src={selected.photoUrl}
                       alt="Incident evidence"
@@ -237,7 +237,7 @@ export function AdminModeration() {
                 ) : null}
 
                 {selected.ai ? (
-                  <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4">
+                  <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p className="text-sm text-slate-400">AI recommendation</p>
@@ -265,7 +265,7 @@ export function AdminModeration() {
                     <select
                       value={overrideSeverity}
                       onChange={(event) => setOverrideSeverity(event.target.value as Severity)}
-                      className="h-11 w-full rounded-2xl border border-white/15 bg-panel-900/60 px-3 text-sm text-slate-100"
+                      className="h-11 w-full rounded-xl border border-white/15 bg-panel-900/60 px-3 text-sm text-slate-100"
                     >
                       {SEVERITY_ORDER.map((severity) => (
                         <option key={severity} value={severity}>
@@ -280,7 +280,7 @@ export function AdminModeration() {
                     <select
                       value={overrideDepartment}
                       onChange={(event) => setOverrideDepartment(event.target.value as DepartmentFilter)}
-                      className="h-11 w-full rounded-2xl border border-white/15 bg-panel-900/60 px-3 text-sm text-slate-100"
+                      className="h-11 w-full rounded-xl border border-white/15 bg-panel-900/60 px-3 text-sm text-slate-100"
                     >
                       {DEPARTMENT_ORDER.map((department) => (
                         <option key={department} value={department}>
@@ -319,19 +319,19 @@ export function AdminModeration() {
                 </div>
 
                 {errorMessage ? (
-                  <div className="rounded-[22px] border border-danger-400/35 bg-danger-500/12 p-4 text-sm text-danger-100">
+                  <div className="rounded-lg border border-danger-400/35 bg-danger-500/12 p-4 text-sm text-danger-100">
                     {errorMessage}
                   </div>
                 ) : null}
 
                 {feedback ? (
-                  <div className="rounded-[22px] border border-success-400/35 bg-success-500/12 p-4 text-sm text-success-100">
+                  <div className="rounded-lg border border-success-400/35 bg-success-500/12 p-4 text-sm text-success-100">
                     {feedback}
                   </div>
                 ) : null}
               </>
             ) : (
-              <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
+              <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
                 Select a pending report to review AI output and apply moderation decisions.
               </div>
             )}

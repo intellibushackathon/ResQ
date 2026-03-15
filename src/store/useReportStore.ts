@@ -30,6 +30,14 @@ import {
 } from "../lib/reporting";
 import { reverseGeocode } from "../lib/geocoding";
 import type { AppRole } from "../lib/supabase";
+import type { AlertState } from "../lib/reporting";
+import type { IncidentProgression } from "../lib/types/incident";
+import {
+  queueResponderUpdate,
+  createAcknowledgeUpdate,
+  createProgressionUpdate,
+  createFieldNoteUpdate,
+} from "../lib/sync/responder-updates";
 
 type ReportSession = {
   uid: string;
@@ -74,6 +82,9 @@ type ReportState = {
   loadAdminData: () => Promise<void>;
   updateAdminSetting: (key: keyof AdminSettings, value: boolean | number) => Promise<void>;
   clearAuthScopedState: () => void;
+  acknowledgeAssignment: (reportId: string) => Promise<void>;
+  updateIncidentProgression: (reportId: string, progression: IncidentProgression) => Promise<void>;
+  addFieldNote: (reportId: string, note: string) => Promise<void>;
   clearSubmissionState: () => void;
 };
 
@@ -395,6 +406,42 @@ export const useReportStore = create<ReportState>()(
           adminSettingsWarning: null,
         });
         await get().loadAdminData();
+      },
+
+      async acknowledgeAssignment(reportId) {
+        await queueResponderUpdate(createAcknowledgeUpdate(reportId));
+        set((state) => ({
+          reports: state.reports.map((r) =>
+            r.id === reportId
+              ? { ...r, alertState: "acknowledged" as const }
+              : r,
+          ),
+        }));
+      },
+
+      async updateIncidentProgression(reportId, progression) {
+        await queueResponderUpdate(createProgressionUpdate(reportId, progression));
+        const alertStateMap: Record<string, AlertState> = {
+          en_route: "dispatched",
+          on_scene: "dispatched",
+          resolved: "resolved",
+        };
+        const nextAlertState: AlertState | undefined = alertStateMap[progression];
+        set((state) => ({
+          reports: state.reports.map((r) =>
+            r.id === reportId
+              ? {
+                  ...r,
+                  ...(nextAlertState ? { alertState: nextAlertState } : {}),
+                  ...(progression === "resolved" ? { status: "Resolved" as const } : {}),
+                }
+              : r,
+          ),
+        }));
+      },
+
+      async addFieldNote(reportId, note) {
+        await queueResponderUpdate(createFieldNoteUpdate(reportId, note));
       },
 
       clearAuthScopedState() {

@@ -136,7 +136,7 @@ export function AdminDashboard() {
               priorityQueue.map((report) => (
                 <div
                   key={report.id}
-                  className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4"
+                  className="rounded-lg border border-white/10 bg-white/[0.04] p-4"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -160,7 +160,7 @@ export function AdminDashboard() {
                 </div>
               ))
             ) : (
-              <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
+              <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
                 No active incidents are in the queue right now.
               </div>
             )}
@@ -168,7 +168,7 @@ export function AdminDashboard() {
             {priorityQueue.length > 0 && (
               <Link
                 to="/admin/moderation"
-                className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-2xl border border-white/10 px-4 text-sm font-semibold text-slate-100 transition hover:border-brand-400/40 hover:bg-brand-500/10"
+                className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-xl border border-white/10 px-4 text-sm font-semibold text-slate-100 transition hover:border-brand-400/40 hover:bg-brand-500/10"
               >
                 View full moderation queue
               </Link>
@@ -193,7 +193,7 @@ export function AdminDashboard() {
                 recentLogs.map((entry) => (
                   <div
                     key={entry.id}
-                    className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4"
+                    className="rounded-lg border border-white/10 bg-white/[0.04] p-4"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <Badge variant={auditLevelBadgeVariant(entry.level)}>{entry.level}</Badge>
@@ -206,7 +206,7 @@ export function AdminDashboard() {
                   </div>
                 ))
               ) : (
-                <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
+                <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
                   {isAdminDataLoading ? "Loading audit entries..." : "No audit entries available yet."}
                 </div>
               )}
@@ -214,7 +214,7 @@ export function AdminDashboard() {
               {recentLogs.length > 0 && (
                 <Link
                   to="/admin/audit-logs"
-                  className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-2xl border border-white/10 px-4 text-sm font-semibold text-slate-100 transition hover:border-brand-400/40 hover:bg-brand-500/10"
+                  className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-xl border border-white/10 px-4 text-sm font-semibold text-slate-100 transition hover:border-brand-400/40 hover:bg-brand-500/10"
                 >
                   View all audit logs
                 </Link>
@@ -236,7 +236,7 @@ export function AdminDashboard() {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className="flex items-center justify-between rounded-[22px] border border-white/10 bg-white/[0.04] px-4 py-3 transition hover:border-white/15 hover:bg-white/[0.07]"
+                  className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 transition hover:border-white/15 hover:bg-white/[0.07]"
                 >
                   <div>
                     <p className="font-semibold text-white">{link.label}</p>

@@ -26,7 +26,7 @@ export function Alerts() {
             <Badge variant="danger">Critical feed</Badge>
             <Badge variant="outline">Public-facing alerts</Badge>
           </div>
-          <CardTitle className="text-3xl sm:text-[2rem]">Active critical alerts</CardTitle>
+          <CardTitle className="text-xl">Active critical alerts</CardTitle>
           <CardDescription className="max-w-3xl text-base leading-7">
             Incidents with highest urgency that remain unresolved.
           </CardDescription>
@@ -34,19 +34,19 @@ export function Alerts() {
 
         <CardContent className="space-y-4">
           {isInitializing && !isReady ? (
-            <p className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
+            <p className="rounded-xl border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
               Loading critical alerts...
             </p>
           ) : null}
 
           {loadError ? (
-            <p className="rounded-2xl border border-danger-400/35 bg-danger-500/12 p-4 text-sm text-danger-100">
+            <p className="rounded-xl border border-danger-400/35 bg-danger-500/12 p-4 text-sm text-danger-100">
               {loadError}
             </p>
           ) : null}
 
           {items.map((item) => (
-            <article key={item.id} className="rounded-3xl border border-danger-400/35 bg-danger-500/12 p-4">
+            <article key={item.id} className="rounded-xl border border-danger-400/35 bg-danger-500/12 p-4">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-danger-100/80">{item.id}</p>
@@ -73,7 +73,7 @@ export function Alerts() {
           ))}
 
           {isReady && items.length === 0 && !loadError ? (
-            <p className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
+            <p className="rounded-xl border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
               No critical unresolved incidents at this time.
             </p>
           ) : null}
@@ -89,10 +89,10 @@ export function Alerts() {
           <CardDescription>This feed intentionally follows the blueprint rule exactly.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-slate-200">
+          <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4 text-slate-200">
             `severity === "Critical" && status !== "Resolved"`
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-slate-300">
+          <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4 text-slate-300">
             This remains a public-facing alert surface and stays separate from admin moderation workflows.
           </div>
         </CardContent>

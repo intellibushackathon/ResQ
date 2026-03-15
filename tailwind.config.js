@@ -7,6 +7,7 @@ export default {
         brand: {
           50: "#e7f3ff",
           100: "#d2e8ff",
+          300: "#6bb5ff",
           400: "#4aa3ff",
           500: "#2491ff",
           600: "#1576dd",
@@ -36,6 +37,24 @@ export default {
           800: "#10233c",
           700: "#16304c",
         },
+        // Sidebar colors
+        sidebar: {
+          DEFAULT: "#0a1520",
+          foreground: "#e2e8f0",
+          primary: "#2dd4bf",
+          "primary-foreground": "#0a1520",
+          accent: "#1e293b",
+          "accent-foreground": "#f1f5f9",
+          border: "#1e293b",
+        },
+        // Severity colors
+        critical: "#ef4444",
+        high: "#f59e0b",
+        medium: "#3b82f6",
+        low: "#6b7280",
+        // Admin accent
+        "admin-accent": "#8b5cf6",
+        "admin-bg": "#0a0e1a",
       },
       fontFamily: {
         sans: ["Manrope", "sans-serif"],

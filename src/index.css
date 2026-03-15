@@ -7,10 +7,7 @@
 :root {
   color-scheme: dark;
   font-family: Manrope, sans-serif;
-  background:
-    radial-gradient(circle at top left, rgba(36, 145, 255, 0.18), transparent 32%),
-    radial-gradient(circle at top right, rgba(22, 199, 132, 0.1), transparent 24%),
-    linear-gradient(180deg, #06111f 0%, #09182b 48%, #10233c 100%);
+  background: #06111f;
   color: #f8fafc;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -48,33 +45,17 @@
 }
 
 @layer components {
-  .panel-outline {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: linear-gradient(180deg, rgba(10, 22, 37, 0.92), rgba(8, 18, 30, 0.88));
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22);
-    backdrop-filter: blur(12px);
-  }
-
-  .glass-panel {
-    background:
-      linear-gradient(180deg, rgba(11, 24, 41, 0.8), rgba(6, 17, 31, 0.74)),
-      radial-gradient(circle at top left, rgba(36, 145, 255, 0.18), transparent 34%);
-    backdrop-filter: blur(18px);
-  }
-
   .section-label {
-    @apply text-xs font-semibold uppercase tracking-[0.35em] text-slate-500;
+    @apply text-xs font-medium uppercase tracking-widest text-slate-500;
   }
 
   .status-chip {
-    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em];
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium;
   }
 
   .map-shell {
     border: 1px solid rgba(255, 255, 255, 0.1);
-    background: linear-gradient(180deg, rgba(10, 22, 37, 0.92), rgba(8, 18, 30, 0.88));
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22);
-    backdrop-filter: blur(12px);
+    background: rgba(9, 24, 43, 0.9);
   }
 
   .incident-map__marker,
@@ -126,7 +107,7 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(36, 145, 255, 0.7), rgba(9, 24, 43, 0.7));
+  background: rgba(148, 163, 184, 0.3);
   border-radius: 999px;
 }
 

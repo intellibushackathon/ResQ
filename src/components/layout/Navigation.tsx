@@ -75,7 +75,7 @@ function NavigationContent({
             onClick={onToggle}
             className={({ isActive }) =>
               cn(
-                "group flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200",
+                "group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200",
                 isActive
                   ? "border border-brand-400/25 bg-brand-500/12"
                   : "border border-transparent hover:bg-white/[0.04]",
@@ -100,7 +100,7 @@ function NavigationContent({
       </nav>
 
       {/* Account panel */}
-      <div className="mt-4 flex items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
+      <div className="mt-4 flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-slate-400">
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
@@ -119,7 +119,7 @@ export function Navigation({ items, open, onToggle }: NavigationProps) {
   return (
     <>
       <aside className="hidden w-[280px] shrink-0 lg:block">
-        <div className="sticky top-6 h-[calc(100vh-3rem)] rounded-[32px] border border-white/10 bg-panel-900/72 p-5 shadow-panel backdrop-blur-2xl">
+        <div className="sticky top-6 h-[calc(100vh-3rem)] rounded-xl border border-white/10 bg-panel-900/72 p-5 shadow-panel backdrop-blur-2xl">
           <NavigationContent items={items} onToggle={() => {}} />
         </div>
       </aside>
@@ -133,7 +133,7 @@ export function Navigation({ items, open, onToggle }: NavigationProps) {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="flex h-full max-h-full flex-col rounded-[32px] border border-white/10 bg-panel-950/96 p-5 shadow-[0_30px_80px_rgba(0,0,0,0.48)]"
+              className="flex h-full max-h-full flex-col rounded-xl border border-white/10 bg-panel-950/96 p-5 shadow-[0_30px_80px_rgba(0,0,0,0.48)]"
               initial={{ x: -24, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -24, opacity: 0 }}

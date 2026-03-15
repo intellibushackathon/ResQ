@@ -48,7 +48,7 @@ export function SafeZones() {
           <Badge>Safe zone directory</Badge>
           <Badge variant="outline">Jamaica shelter network</Badge>
         </div>
-        <CardTitle className="text-3xl sm:text-[2rem]">Shelters and fallback locations</CardTitle>
+        <CardTitle className="text-xl">Shelters and fallback locations</CardTitle>
         <CardDescription className="max-w-3xl text-base leading-7">
           Static reference list for public safety routing during storms, flooding, and infrastructure outages.
         </CardDescription>
@@ -56,11 +56,11 @@ export function SafeZones() {
 
       <CardContent className="grid gap-4 md:grid-cols-2">
         {safeZones.map((zone) => (
-          <article key={zone.name} className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
+          <article key={zone.name} className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
             <div className="mb-3 flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{zone.parish}</p>
-                <h3 className="mt-1 font-display text-xl text-white">{zone.name}</h3>
+                <h3 className="mt-1 font-sans text-xl text-white">{zone.name}</h3>
               </div>
               <Badge variant="success">{zone.type}</Badge>
             </div>

@@ -64,7 +64,7 @@ export function LocationPickerMap({
   className,
 }: LocationPickerMapProps) {
   return (
-    <div className={cn("map-shell h-48 w-full overflow-hidden rounded-[28px]", className)}>
+    <div className={cn("map-shell h-48 w-full overflow-hidden rounded-xl", className)}>
       <MapContainer center={[mapCenter.lat, mapCenter.lng]} zoom={13} className="h-full w-full">
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
