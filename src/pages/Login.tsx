@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 import { isSupabaseConfigured } from "../lib/supabase";
 import { getDefaultRouteForSession, useAuthStore } from "../store/useAuthStore";
 
+
 type AuthView = "signin" | "signup";
 
 export function Login() {
@@ -17,6 +18,7 @@ export function Login() {
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
   const signIn = useAuthStore((state) => state.signIn);
   const signUp = useAuthStore((state) => state.signUp);
+  const enterGuestMode = useAuthStore((state) => state.enterGuestMode);
   const clearAuthError = useAuthStore((state) => state.clearAuthError);
 
   const [view, setView] = useState<AuthView>("signin");
@@ -52,6 +54,12 @@ export function Login() {
     }
 
     return true;
+  }
+
+  function handleGuest() {
+    resetErrors();
+    enterGuestMode();
+    navigate("/", { replace: true });
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -106,6 +114,9 @@ export function Login() {
             </Button>
             <Button variant={view === "signup" ? "default" : "outline"} size="sm" onClick={() => setView("signup")}>
               Sign up
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleGuest}>
+              Continue as guest
             </Button>
           </div>
 
@@ -179,7 +190,7 @@ export function Login() {
             Successful sign-up creates a public profile by default. Staff and admin elevation require profile updates.
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-slate-300">
-            Public routes remain available without signing in. Protected responder and admin routes require an authenticated session with the correct role.
+            Public routes remain available without signing in. Use <strong className="text-slate-100">Continue as guest</strong> to access the citizen flow immediately — no account needed. Protected responder and admin routes require a signed-in session with the correct role.
           </div>
         </CardContent>
       </Card>

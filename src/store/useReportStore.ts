@@ -34,6 +34,7 @@ import type { AppRole } from "../lib/supabase";
 type ReportSession = {
   uid: string;
   role: AppRole;
+  isAnonymous?: boolean;
 } | null;
 
 type SubmissionPhase = "idle" | "analyzing" | "submitting" | "success";
@@ -220,7 +221,9 @@ export const useReportStore = create<ReportState>()(
           submittedBy: session?.uid ?? null,
         };
 
-        if (!navigator.onLine) {
+        // Guest users have a local-only UID that is not a valid auth.users FK.
+        // Always use the offline queue for guests regardless of connectivity.
+        if (!navigator.onLine || session?.isAnonymous) {
           const queuedDraft: QueuedReportDraft = {
             id: createClientReportId("queued-report"),
             imageDataUrl,
@@ -319,7 +322,8 @@ export const useReportStore = create<ReportState>()(
       },
 
       async syncOfflineQueue(session) {
-        if (!navigator.onLine || get().offlineQueue.length === 0) {
+        // Guest UIDs are not valid Supabase auth.users FKs — skip sync until signed in.
+        if (!navigator.onLine || get().offlineQueue.length === 0 || session?.isAnonymous) {
           return;
         }
 
