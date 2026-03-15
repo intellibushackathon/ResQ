@@ -376,8 +376,7 @@ export async function persistReportAnalysis(reportId: string, analysis: ReportAI
   const { error } = await client.from(REPORT_AI_TABLE).upsert(
     {
       report_id: reportId,
-      damage_type: toDbDamageType(analysis.damageType),
-      severity: toDbSeverity(analysis.severity),
+      // damage_type and severity belong to the reports table, not report_ai_analyses
       confidence: analysis.confidence,
       summary: analysis.summary,
       rationale: analysis.rationale,
